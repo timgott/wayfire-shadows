@@ -40,7 +40,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
                 ( title_texture.tex.height != target_height ) ||
                 ( title_texture.current_text != view->get_title() ) ) {
 
-            title_texture.current_text = view->get_app_id(); //view->get_title();
+            title_texture.current_text = view->get_title();
             auto surface = theme.render_text( title_texture.current_text, target_width, target_height );
             cairo_surface_upload_to_texture( surface, title_texture.tex );
             cairo_surface_destroy( surface );

@@ -159,8 +159,10 @@ cairo_surface_t* wf::windecor::decoration_theme_t::get_button_surface( button_ty
             RsvgDimensionData size;
             rsvg_handle_get_dimensions( svg, &size );
 
-            button_icon = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, size.width, size.height );
+            /* Render it 4 times bigger and then scale down to get a smooth pix */
+            button_icon = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, size.width * 4, size.height * 4 );
             auto crsvg = cairo_create( button_icon );
+            cairo_scale( crsvg, 4, 4 );
             rsvg_handle_render_cairo( svg, crsvg );
             cairo_fill( crsvg );
             cairo_destroy( crsvg );
