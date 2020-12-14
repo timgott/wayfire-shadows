@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
+#include<bits/stdc++.h>
 
 #include "INIReader.h"
 
@@ -214,6 +215,9 @@ std::string wf::windecor::decoration_theme_t::get_icon_for_app_id() const {
         return iconName;
     }
 
+    std::string iconNameL = iconName;
+    transform( iconNameL.begin(), iconNameL.end(), iconNameL.begin(), ::tolower );
+
     /* Get the icon path from icon theme */
     std::string icon_theme;
     if ( getenv( "WINDECOR_ICON_THEME" ) )
@@ -238,6 +242,7 @@ std::string wf::windecor::decoration_theme_t::get_icon_for_app_id() const {
         icon_theme = "/usr/share/icons/" + icon_theme + "/";
     }
 
+    /* Fallback themes */
     std::vector<std::string> themes = { icon_theme };
     INIReader iconTheme( icon_theme + "index.theme" );
     for( auto fbTh: iconTheme.GetList( "Icon Theme", "Inherits", ',' ) ) {
@@ -247,6 +252,9 @@ std::string wf::windecor::decoration_theme_t::get_icon_for_app_id() const {
 
     themes.push_back( hicolor );
 
+    /* /usr/share/pixmaps/ */
+    themes.push_back( "/usr/share/pixmaps/" );
+
     std::vector<std::string> paths;
     for( auto theme: themes ) {
         paths.clear();
@@ -255,8 +263,14 @@ std::string wf::windecor::decoration_theme_t::get_icon_for_app_id() const {
             if ( exists( theme + dir + "/" + iconName + ".svg" ) )
                 paths.push_back( theme + dir + "/" + iconName + ".svg" );
 
+            if ( exists( theme + dir + "/" + iconNameL + ".svg" ) )
+                paths.push_back( theme + dir + "/" + iconNameL + ".svg" );
+
             if ( exists( theme + dir + "/" + iconName + ".png" ) )
                 paths.push_back( theme + dir + "/" + iconName + ".png" );
+
+            if ( exists( theme + dir + "/" + iconNameL + ".png" ) )
+                paths.push_back( theme + dir + "/" + iconNameL + ".png" );
         }
 
         if ( paths.size() ) {
