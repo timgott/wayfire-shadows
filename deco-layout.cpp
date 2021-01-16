@@ -30,8 +30,7 @@ decoration_area_t::decoration_area_t(wf::geometry_t g, std::function<void(wlr_bo
     this->type     = DECORATION_AREA_BUTTON;
     this->geometry = g;
 
-    this->button = std::make_unique<button_t>(theme,
-        std::bind(damage_callback, g));
+    this->button = std::make_unique<button_t>(theme, std::bind(damage_callback, g));
 }
 
 wf::geometry_t decoration_area_t::get_geometry() const {

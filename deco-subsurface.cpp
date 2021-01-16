@@ -66,7 +66,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
         this->view = view;
         view->connect_signal( "title-changed", &title_set );
-        view->connect_signal( "unmapped", &on_base_view_unmap );
+        view->connect_signal("subsurface-removed", &on_subsurface_removed);
 
         // make sure to hide frame if the view is fullscreen
         update_decoration_size();
@@ -204,21 +204,20 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
         handle_action( layout.handle_press_event() );
     }
 
-    virtual void on_touch_motion( int x, int y ) override
-    {
+    virtual void on_touch_motion( int x, int y ) override {
+
         layout.handle_motion( x, y );
     }
 
-    virtual void on_touch_up() override
-    {
+    virtual void on_touch_up() override {
+
         handle_action( layout.handle_press_event( false ) );
         layout.handle_focus_lost();
     }
 
     /* frame implementation */
-    virtual wf::geometry_t expand_wm_geometry(
-        wf::geometry_t contained_wm_geometry ) override
-    {
+    virtual wf::geometry_t expand_wm_geometry( wf::geometry_t contained_wm_geometry ) override {
+
         contained_wm_geometry.x     -= current_thickness;
         contained_wm_geometry.y     -= current_titlebar;
         contained_wm_geometry.width += 2 * current_thickness;
@@ -227,9 +226,8 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
         return contained_wm_geometry;
     }
 
-    virtual void calculate_resize_size(
-        int& target_width, int& target_height ) override
-    {
+    virtual void calculate_resize_size( int& target_width, int& target_height ) override {
+
         target_width  -= 2 * current_thickness;
         target_height -= current_thickness + current_titlebar;
 
@@ -237,38 +235,36 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
         target_height = std::max( target_height, 1 );
     }
 
-    wf::signal_connection_t on_base_view_unmap = [&] ( wf::signal_data_t *data )
-    {
-        unmap();
-        // remove self
-        view->set_decoration( nullptr );
+    wf::signal_connection_t on_subsurface_removed = [&] (auto data) {
+
+        auto ev = static_cast<wf::subsurface_removed_signal*>(data);
+        if (ev->subsurface.get() == this) {
+            unmap();
+        }
     };
 
-    void unmap()
-    {
+    void unmap() {
+
         _mapped = false;
         wf::emit_map_state_change( this );
     }
 
-    virtual void notify_view_activated( bool active ) override
-    {
-        if ( this->active != active )
-        {
+    virtual void notify_view_activated( bool active ) override {
+        if ( this->active != active ) {
             view->damage();
         }
 
         this->active = active;
     }
 
-    virtual void notify_view_resized( wf::geometry_t view_geometry ) override
-    {
+    virtual void notify_view_resized( wf::geometry_t view_geometry ) override {
+
         view->damage();
         width  = view_geometry.width;
         height = view_geometry.height;
 
         layout.resize( width, height );
-        if ( !view->fullscreen )
-        {
+        if ( !view->fullscreen ) {
             this->cached_region = layout.calculate_region();
         }
 
