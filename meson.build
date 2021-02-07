@@ -1,5 +1,5 @@
 project(
-	'wayfire-plugins-marcus',
+	'wayfire-plugin-windecor',
     'c',
 	'cpp',
 	version: '0.1',
