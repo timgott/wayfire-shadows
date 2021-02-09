@@ -2,11 +2,13 @@
 
 This is the alternate window decorator plugin to draw titlebar.
 
+![image](screenshot.webp)
+
 ## Compile and install
 You should have first compiled and installed wlroots, wf-config and wayfire.
 
 - Get the sources
-  - `git clone https://gitlab.com/marcusbritanicus/windecor`
+  - `git clone https://gitlab.com/wayfireplugins/windecor`
 - Enter the `windecor`
   - `cd windecor`
 - Configure the project - we use meson for project management
