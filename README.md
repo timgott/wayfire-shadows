@@ -17,3 +17,10 @@ You should have first compiled and installed wlroots, wf-config and wayfire.
 ## Usage
 To use windecor plugin to render the decorations, disable all other decoration plugins. You may use wcm to configure your wayfire config file.
 If you make changes to the configurations, you will have to close and restart wayfire for the changes to take effect.
+
+## Changes from previous commit
+There are several changes since the previous commit. Two new options have been introduced - **modify your wayfire config file**
+1. `icon_theme` - Previously, the icon theme was set using env variable. Now the env variable is no longer used.
+2. `work_hard` - Sometimes, matching the app_id to the correct desktop file is difficult. Especially if the binary name and the desktop names
+differ. In such cases, you can ask windecor to look into all desktop file in the hope of matching the app_id with an executable name. However,
+note that this operation is resource-hungry. The default value is false. A nice default icon is painted if we could not get any icon names.

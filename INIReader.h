@@ -13,6 +13,19 @@ https://github.com/benhoyt/inih
 
 */
 
+/*
+    *
+    * Modifications
+    *
+    * This file has undergone several modifications to suit the needs of this project.
+    * All credits go the original author. Bugs in this file are to be reported in this
+    * project and NOT the original project.
+    *
+    * It is strongly advised that you use INIReader.h from the original project rather
+    * than this file.
+    *
+*/
+
 #ifndef __INI_H__
 #define __INI_H__
 
@@ -84,7 +97,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
 
 /* Maximum line length for any line in INI file. */
 #ifndef INI_MAX_LINE
-#define INI_MAX_LINE 4096
+#define INI_MAX_LINE 40960
 #endif
 
 #ifdef __cplusplus
@@ -100,17 +113,13 @@ https://github.com/benhoyt/inih
 
 */
 
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_SECTION 50
-#define MAX_NAME 50
+#define MAX_SECTION 100
+#define MAX_NAME 100
 
 /* Strip whitespace chars off end of given string, in place. Return s. */
 inline static char* rstrip(char* s)

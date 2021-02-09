@@ -34,7 +34,7 @@ class wayfire_decoration :
     void init() override
     {
         singleton_plugin_t::init();
-        grab_interface->name = "simple-decoration";
+        grab_interface->name = "window-decoration";
         grab_interface->capabilities = wf::CAPABILITY_VIEW_DECORATOR;
 
         output->connect_signal("view-mapped", &view_updated);

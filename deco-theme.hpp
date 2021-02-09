@@ -1,6 +1,7 @@
 #pragma once
 #include <wayfire/render-manager.hpp>
 #include "deco-button.hpp"
+#include "deco-icontheme.hpp"
 
 namespace wf {
 namespace windecor {
@@ -35,9 +36,6 @@ class decoration_theme_t {
          */
         cairo_surface_t *render_text(std::string text, int width, int height) const;
 
-        /* Render the icon given the app_id */
-        void render_app_icon( std::string appid );
-
         struct button_state_t {
             int width;              /** Button width */
             int height;             /** Button height */
@@ -57,6 +55,7 @@ class decoration_theme_t {
 
     private:
         wf::option_wrapper_t<std::string> font{ "windecor/font" };
+        wf::option_wrapper_t<std::string> iconTheme{ "windecor/icon_theme" };
         wf::option_wrapper_t<int>         title_height{ "windecor/title_height" };
         wf::option_wrapper_t<int>         border_size{ "windecor/border_size" };
         wf::option_wrapper_t<wf::color_t> active_color{ "windecor/active_color" };
@@ -66,8 +65,8 @@ class decoration_theme_t {
         wf::option_wrapper_t<wf::color_t> minimize_color{ "windecor/minimize_color" };
 
         std::string mAppId;
-        std::string get_icon_for_app_id() const;
+        windecor::IconThemeManager *themeMgr;
 };
 
 }       /* windecor */
-}   /* wf */
+}

@@ -24,12 +24,12 @@ add_project_arguments(['-DWLR_USE_UNSTABLE'], language: ['cpp', 'c'])
 add_project_arguments(['-DWAYFIRE_PLUGIN'], language: ['cpp', 'c'])
 add_project_link_arguments(['-rdynamic'], language:'cpp')
 
-
 decoration = shared_module(
     'windecor', [
         'decoration.cpp',
         'deco-subsurface.cpp',
         'deco-button.cpp',
+        'deco-icontheme.cpp',
         'deco-layout.cpp',
         'deco-theme.cpp'
     ],
@@ -47,11 +47,12 @@ decoration = shared_module(
 )
 
 install_data( 'windecor.xml', install_dir: wayfire.get_variable( pkgconfig: 'metadatadir' ) )
+install_data( 'executable.svg', install_dir: 'share/wayfire/windecor')
 
 summary = [
 	'',
 	'----------------',
-	'wayfire-plugin-windecor @0@'.format(meson.project_version()),
+	'wayfire-plugin-windecor @0@'.format( meson.project_version() ),
 	'----------------',
 	''
 ]

@@ -8,32 +8,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
-#include<bits/stdc++.h>
-
-#include "INIReader.h"
-
-bool exists( std::string path ) {
-
-    struct stat statbuf;
-	if ( stat( path.c_str(), &statbuf ) == 0 )
-
-		if ( S_ISDIR( statbuf.st_mode ) )
-			return ( access( path.c_str(), R_OK | X_OK ) == 0 );
-
-		else if ( S_ISREG( statbuf.st_mode ) )
-			return ( access( path.c_str(), R_OK ) == 0 );
-
-        else
-            return false;
-
-	else
-		return false;
-}
+#include <bits/stdc++.h>
 
 /** Create a new theme with the default parameters */
 wf::windecor::decoration_theme_t::decoration_theme_t( std::string app_id ) {
 
     mAppId = app_id;
+    themeMgr = new IconThemeManager( iconTheme );
 }
 
 /** @return The available height for displaying the title */
@@ -56,9 +37,9 @@ int wf::windecor::decoration_theme_t::get_border_size() const {
  * @param scissor The GL scissor rectangle to use.
  * @param active Whether to use active or inactive colors
  */
-void wf::windecor::decoration_theme_t::render_background( const wf::framebuffer_t& fb, wf::geometry_t rectangle, const wf::geometry_t& scissor, bool active ) const {
+void wf::windecor::decoration_theme_t::render_background( const framebuffer_t& fb, geometry_t rectangle, const geometry_t& scissor, bool active ) const {
 
-    wf::color_t color = active ? active_color : inactive_color;
+    color_t color = active ? active_color : inactive_color;
     OpenGL::render_begin( fb );
     fb.logic_scissor( scissor );
     OpenGL::render_rectangle( rectangle, color, fb.get_orthographic_projection() );
@@ -115,21 +96,21 @@ cairo_surface_t* wf::windecor::decoration_theme_t::get_button_surface( button_ty
     cairo_stroke_preserve( cr );
 
     /* Button color */
-    wf::color_t base_background = { 0.0, 0.0, 0.0, 0.5 };
-    wf::color_t hover_add_background = { 0.0, 0.0, 0.0, 0.5 };
+    color_t base_background = { 0.0, 0.0, 0.0, 0.5 };
+    color_t hover_add_background = { 0.0, 0.0, 0.0, 0.5 };
     switch ( button ) {
         case BUTTON_CLOSE:
-            base_background = ( wf::color_t )close_color;
+            base_background = ( color_t )close_color;
             base_background.a = 0.5;
             break;
 
         case BUTTON_TOGGLE_MAXIMIZE:
-            base_background = ( wf::color_t )maximize_color;
+            base_background = ( color_t )maximize_color;
             base_background.a = 0.5;
             break;
 
         case BUTTON_MINIMIZE:
-            base_background = ( wf::color_t )minimize_color;
+            base_background = ( color_t )minimize_color;
             base_background.a = 0.5;
             break;
 
@@ -152,7 +133,7 @@ cairo_surface_t* wf::windecor::decoration_theme_t::get_button_surface( button_ty
 
     /* Icon */
     if ( button == BUTTON_ICON ) {
-        std::string iconPath = get_icon_for_app_id();
+        std::string iconPath = themeMgr->iconPathForAppId( mAppId );
         cairo_surface_t *button_icon;
         /* Draw svg */
         if ( iconPath.find( ".svg" ) != std::string::npos ) {
@@ -185,140 +166,4 @@ cairo_surface_t* wf::windecor::decoration_theme_t::get_button_surface( button_ty
     cairo_destroy( cr );
 
     return button_surface;
-}
-
-std::string wf::windecor::decoration_theme_t::get_icon_for_app_id() const {
-
-    /* First read the icon name from desktop file */
-    char home[ 256 ] = {};
-    strcpy( home, getenv( "HOME" ) );
-    strcat( home, "/.local/share/applications/" );
-
-    std::vector<std::string> appDirs = {
-        home,
-        "/usr/local/share/applications/",
-        "/usr/share/applications/",
-    };
-
-    std::string iconName = "application-x-executable";
-    for( auto path: appDirs ) {
-        if ( exists( path + mAppId + ".desktop" ) ) {
-            INIReader desktop( path + mAppId + ".desktop" );
-            iconName = desktop.Get( "Desktop Entry", "Icon", "application-x-executable" );
-            if ( iconName.size() )
-                break;
-        }
-    }
-
-    /* In case a full path is specified */
-    if ( ( iconName.at( 0 ) == '/' ) and exists( iconName ) ) {
-        return iconName;
-    }
-
-    std::string iconNameL = iconName;
-    transform( iconNameL.begin(), iconNameL.end(), iconNameL.begin(), ::tolower );
-
-    /* Get the icon path from icon theme */
-    std::string icon_theme;
-    if ( getenv( "WINDECOR_ICON_THEME" ) )
-        icon_theme = getenv( "WINDECOR_ICON_THEME" );
-
-    else
-        icon_theme = "";
-
-    std::string hicolor = "/usr/share/icons/hicolor/";
-    if ( not icon_theme.size() ) {
-        if ( exists( "/usr/share/icons/Adwaita" ) )
-            icon_theme = "/usr/share/icons/Adwaita/";
-
-        else if ( exists( "/usr/share/icons/breeze" ) )
-            icon_theme = "/usr/share/icons/breeze/";
-
-        else
-            icon_theme = hicolor;
-    }
-
-    else {
-        icon_theme = "/usr/share/icons/" + icon_theme + "/";
-    }
-
-    /* Fallback themes */
-    std::vector<std::string> themes = { icon_theme };
-    INIReader iconTheme( icon_theme + "index.theme" );
-    for( auto fbTh: iconTheme.GetList( "Icon Theme", "Inherits", ',' ) ) {
-        if ( exists( "/usr/share/icons/" + fbTh + "/" ) )
-            themes.push_back( "/usr/share/icons/" + fbTh + "/" );
-    }
-
-    themes.push_back( hicolor );
-
-    /* /usr/share/pixmaps/ */
-    themes.push_back( "/usr/share/pixmaps/" );
-
-    std::vector<std::string> paths;
-    for( auto theme: themes ) {
-        paths.clear();
-        INIReader iconTheme( theme + "index.theme" );
-        for( auto dir: iconTheme.GetList( "Icon Theme", "Directories", ',' ) ) {
-            if ( exists( theme + dir + "/" + iconName + ".svg" ) )
-                paths.push_back( theme + dir + "/" + iconName + ".svg" );
-
-            if ( exists( theme + dir + "/" + iconNameL + ".svg" ) )
-                paths.push_back( theme + dir + "/" + iconNameL + ".svg" );
-
-            if ( exists( theme + dir + "/" + iconName + ".png" ) )
-                paths.push_back( theme + dir + "/" + iconName + ".png" );
-
-            if ( exists( theme + dir + "/" + iconNameL + ".png" ) )
-                paths.push_back( theme + dir + "/" + iconNameL + ".png" );
-        }
-
-        if ( paths.size() ) {
-            /* Get the largest possible */
-            for( auto path: paths ) {
-                /* scalable */
-                if ( ( path.find( "/scalable/" ) != std::string::npos ) )
-                    return path;
-                /* 512px */
-                else if ( ( path.find( "/512/" ) != std::string::npos ) or ( path.find( "/512x512/" ) != std::string::npos ) )
-                    return path;
-                /* 256px */
-                else if ( ( path.find( "/256/" ) != std::string::npos ) or ( path.find( "/256x256/" ) != std::string::npos ) )
-                    return path;
-                /* 128px */
-                else if ( ( path.find( "/128/" ) != std::string::npos ) or ( path.find( "/128x128/" ) != std::string::npos ) )
-                    return path;
-                /* 96px */
-                else if ( ( path.find( "/96/" ) != std::string::npos ) or ( path.find( "/96x96/" ) != std::string::npos ) )
-                    return path;
-                /* 64px */
-                else if ( ( path.find( "/64/" ) != std::string::npos ) or ( path.find( "/64x64/" ) != std::string::npos ) )
-                    return path;
-                /* 48px */
-                else if ( ( path.find( "/48/" ) != std::string::npos ) or ( path.find( "/48x48/" ) != std::string::npos ) )
-                    return path;
-                /* 36px */
-                else if ( ( path.find( "/36/" ) != std::string::npos ) or ( path.find( "/36x36/" ) != std::string::npos ) )
-                    return path;
-                /* 32px */
-                else if ( ( path.find( "/32/" ) != std::string::npos ) or ( path.find( "/32x32/" ) != std::string::npos ) )
-                    return path;
-                /* 24px */
-                else if ( ( path.find( "/24/" ) != std::string::npos ) or ( path.find( "/24x24/" ) != std::string::npos ) )
-                    return path;
-                /* 22px */
-                else if ( ( path.find( "/22/" ) != std::string::npos ) or ( path.find( "/22x22/" ) != std::string::npos ) )
-                    return path;
-                /* 16px */
-                else if ( ( path.find( "/16/" ) != std::string::npos ) or ( path.find( "/16x16/" ) != std::string::npos ) )
-                    return path;
-            }
-
-            /* Return the first in the list */
-            return paths.at( 0 );
-        }
-    }
-
-    std::string iconPath = "/usr/share/icons/breeze/apps/48/fluid.svg";
-    return iconPath;
 }
