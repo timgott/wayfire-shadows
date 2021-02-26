@@ -138,11 +138,24 @@ std::string wf::windecor::IconThemeManager::iconPathForAppId( std::string mAppId
             std::vector<std::string> desktops = getDesktops( path );
             for ( std::string dskf: desktops ) {
                 INIReader desktop( dskf );
+
+                /* Check the executable name */
                 std::istringstream iss( desktop.Get( "Desktop Entry", "Exec", "abcd1234/" ) );
                 std::string exec;
                 getline( iss, exec, ' ' );
 
                 if ( std::filesystem::path( exec ).filename() == mAppId ) {
+                    iconName = desktop.Get( "Desktop Entry", "Icon", "application-x-executable" );
+                    if ( not iconName.empty() )
+                        break;
+                }
+
+                /* Check StartupWMClass - electron apps set this, Courtesy @wb9688 */
+                std::istringstream ess( desktop.Get( "Desktop Entry", "StartupWMClass", "abcd1234/" ) );
+                std::string cls;
+                getline( ess, cls, ' ' );
+
+                if ( cls == mAppId ) {
                     iconName = desktop.Get( "Desktop Entry", "Icon", "application-x-executable" );
                     if ( not iconName.empty() )
                         break;
