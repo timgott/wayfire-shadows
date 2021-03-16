@@ -48,7 +48,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     }
 
     int width = 100, height = 100;
-    bool active = true; // when views are mapped, they are usually activated
+    int active = 1; // when views are mapped, they are usually activated
 
     struct {
         wf::simple_texture_t tex;
@@ -250,11 +250,22 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     }
 
     virtual void notify_view_activated( bool active ) override {
-        if ( this->active != active ) {
-            view->damage();
+        /* Stored state active/attention; new state not active */
+        if ( this->active ) {
+            if ( not active )
+                view->damage();
         }
 
-        this->active = active;
+        /* Stored value is not active; new state is active */
+        else {
+            if ( active )
+                view->damage();
+        }
+
+        if ( view->has_data( "view-demands-attention" ) )
+            this->active = 2;
+
+        this->active = ( active ? 1 : 0 );
     }
 
     virtual void notify_view_resized( wf::geometry_t view_geometry ) override {

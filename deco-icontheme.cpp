@@ -150,6 +150,17 @@ std::string wf::windecor::IconThemeManager::iconPathForAppId( std::string mAppId
                         break;
                 }
 
+                /* Check the name */
+                std::istringstream nss( desktop.Get( "Desktop Entry", "Name", "abcd1234/" ) );
+                std::string name;
+                getline( nss, name, ' ' );
+
+                if ( name == mAppId ) {
+                    iconName = desktop.Get( "Desktop Entry", "Icon", "application-x-executable" );
+                    if ( not iconName.empty() )
+                        break;
+                }
+
                 /* Check StartupWMClass - electron apps set this, Courtesy @wb9688 */
                 std::istringstream ess( desktop.Get( "Desktop Entry", "StartupWMClass", "abcd1234/" ) );
                 std::string cls;

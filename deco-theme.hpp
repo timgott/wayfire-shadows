@@ -13,6 +13,7 @@ class decoration_theme_t {
     public:
         /** Create a new theme with the default parameters */
         decoration_theme_t( std::string app_id );
+        ~decoration_theme_t();
 
         /** @return The available height for displaying the title */
         int get_title_height() const;
@@ -28,7 +29,7 @@ class decoration_theme_t {
          * @param active Whether to use active or inactive colors
          */
         void render_background(const wf::framebuffer_t& fb, wf::geometry_t rectangle,
-            const wf::geometry_t& scissor, bool active) const;
+            const wf::geometry_t& scissor, int state) const;
 
         /**
          * Render the given text on a cairo_surface_t with the given size.
@@ -59,6 +60,7 @@ class decoration_theme_t {
         wf::option_wrapper_t<int>         title_height{ "windecor/title_height" };
         wf::option_wrapper_t<int>         border_size{ "windecor/border_size" };
         wf::option_wrapper_t<wf::color_t> active_color{ "windecor/active_color" };
+        wf::option_wrapper_t<wf::color_t> attn_color{ "windecor/attn_color" };
         wf::option_wrapper_t<wf::color_t> inactive_color{ "windecor/inactive_color" };
         wf::option_wrapper_t<wf::color_t> close_color{ "windecor/close_color" };
         wf::option_wrapper_t<wf::color_t> maximize_color{ "windecor/maximize_color" };

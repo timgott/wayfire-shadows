@@ -40,6 +40,11 @@
 			<_long>Sets the color when the window is active.</_long>
 			<default>#222222aa</default>
 		</option>
+		<option name="attn_color" type="color">
+			<_short>Color when window is demanding attention</_short>
+			<_long>Sets the color when the window is demanding attention.</_long>
+			<default>#3CB371aa</default>
+		</option>
 		<option name="inactive_color" type="color">
 			<_short>Color when window is inactive</_short>
 			<_long>Sets the color when the window is inactive.</_long>

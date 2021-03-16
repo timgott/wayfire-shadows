@@ -10,11 +10,16 @@
 #include <fstream>
 #include <bits/stdc++.h>
 
-/** Create a new theme with the default parameters */
+/** Create a z theme with the default parameters */
 wf::windecor::decoration_theme_t::decoration_theme_t( std::string app_id ) {
 
     mAppId = app_id;
     themeMgr = new IconThemeManager( iconTheme );
+}
+
+wf::windecor::decoration_theme_t::~decoration_theme_t() {
+
+    delete themeMgr;
 }
 
 /** @return The available height for displaying the title */
@@ -37,9 +42,9 @@ int wf::windecor::decoration_theme_t::get_border_size() const {
  * @param scissor The GL scissor rectangle to use.
  * @param active Whether to use active or inactive colors
  */
-void wf::windecor::decoration_theme_t::render_background( const framebuffer_t& fb, geometry_t rectangle, const geometry_t& scissor, bool active ) const {
+void wf::windecor::decoration_theme_t::render_background( const framebuffer_t& fb, geometry_t rectangle, const geometry_t& scissor, int state ) const {
 
-    color_t color = active ? active_color : inactive_color;
+    color_t color = ( state > 0 ? ( state == 1 ? active_color : attn_color ) : inactive_color );
     OpenGL::render_begin( fb );
     fb.logic_scissor( scissor );
     OpenGL::render_rectangle( rectangle, color, fb.get_orthographic_projection() );
@@ -148,6 +153,8 @@ cairo_surface_t* wf::windecor::decoration_theme_t::get_button_surface( button_ty
             rsvg_handle_render_cairo( svg, crsvg );
             cairo_fill( crsvg );
             cairo_destroy( crsvg );
+
+            rsvg_handle_close( svg, 0 );
         }
 
         /* Draw png */
