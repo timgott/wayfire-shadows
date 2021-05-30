@@ -159,7 +159,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     /* wf::compositor_surface_t implementation */
     virtual void on_pointer_enter( int x, int y ) override
     {
-        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
+        layout.handle_motion( x - shadow_offset.x, y - shadow_offset.y );
     }
 
     virtual void on_pointer_leave() override
@@ -169,7 +169,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     virtual void on_pointer_motion( int x, int y ) override
     {
-        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
+        layout.handle_motion( x - shadow_offset.x, y - shadow_offset.y );
     }
 
     virtual void on_pointer_button( uint32_t button, uint32_t state ) override
@@ -217,13 +217,13 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     virtual void on_touch_down( int x, int y ) override
     {
-        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
+        layout.handle_motion( x - shadow_offset.x, y - shadow_offset.y );
         handle_action( layout.handle_press_event() );
     }
 
     virtual void on_touch_motion( int x, int y ) override {
 
-        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
+        layout.handle_motion( x - shadow_offset.x, y - shadow_offset.y );
     }
 
     virtual void on_touch_up() override {
