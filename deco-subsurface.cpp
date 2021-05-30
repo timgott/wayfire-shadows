@@ -30,7 +30,8 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     int outer_offset_height;
 
     wf::point_t shadow_offset;
-    int shadow_padding;
+    int shadow_padding_horizontal;
+    int shadow_padding_vertical;
 
     wayfire_view view;
     wf::signal_callback_t title_set = [=] ( wf::signal_data_t *data ) {
@@ -116,7 +117,10 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
         /* Clear background */
         wf::point_t frame_origin = origin + shadow_offset;
-        wf::geometry_t frame_geometry = {frame_origin.x, frame_origin.y, width - shadow_padding, height - shadow_padding};
+        wf::geometry_t frame_geometry = {
+            frame_origin.x, frame_origin.y, 
+            width - shadow_padding_horizontal, height - shadow_padding_vertical
+        };
         theme.render_background( fb, frame_geometry, scissor, active );
 
         /* Draw title & buttons */
@@ -287,7 +291,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
         width  = view_geometry.width;
         height = view_geometry.height;
 
-        layout.resize( width - shadow_padding, height - shadow_padding );
+        layout.resize( width - shadow_padding_horizontal, height - shadow_padding_vertical );
         shadow.resize( width, height );
         if ( !view->fullscreen ) {
             update_frame_region();
@@ -297,7 +301,9 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     }
 
     virtual void notify_view_tiled() override
-    {}
+    {
+        update_decoration_size();
+    }
 
     void update_decoration_size()
     {
@@ -314,17 +320,26 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
             
             int shadow_radius = shadow.get_radius();
 
-            int border_top = current_titlebar + current_thickness + shadow_radius;
-            int border_side = current_thickness + shadow_radius;
+            int tiled_edges = view->tiled_edges;
+            int shadow_top = (tiled_edges & WLR_EDGE_TOP) ? 0 : shadow_radius;
+            int shadow_left = (tiled_edges & WLR_EDGE_LEFT) ? 0 : shadow_radius;
+            int shadow_right = (tiled_edges & WLR_EDGE_RIGHT) ? 0 : shadow_radius;
+            int shadow_bottom = (tiled_edges & WLR_EDGE_BOTTOM) ? 0 : shadow_radius;
 
-            outer_offset_left = -border_side;
-            outer_offset_top = -border_top;
-            outer_offset_width = border_side + border_side;
-            outer_offset_height = border_top + border_side;
+            int margin_top = current_titlebar + current_thickness + shadow_top;
+            int margin_left = current_thickness + shadow_left;
+            int margin_right = current_thickness + shadow_right;
+            int margin_bottom = current_thickness + shadow_bottom;
 
-            shadow_padding = shadow.get_radius() * 2;
+            outer_offset_left = -margin_left;
+            outer_offset_top = -margin_top;
+            outer_offset_width = margin_left + margin_right;
+            outer_offset_height = margin_top + margin_bottom;
 
-            shadow_offset = {shadow_radius, shadow_radius};
+            shadow_padding_horizontal = shadow_left + shadow_right;
+            shadow_padding_vertical = shadow_top + shadow_bottom;
+
+            shadow_offset = {shadow_left, shadow_top};
 
             update_frame_region();
         }
