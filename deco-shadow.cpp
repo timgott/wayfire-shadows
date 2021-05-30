@@ -99,7 +99,7 @@ void wf::windecor::decoration_shadow_t::render(const framebuffer_t& fb, wf::poin
 }
 
 int wf::windecor::decoration_shadow_t::get_radius() const {
-    return (int)shadow_radius;
+    return shadow_radius;
 }
 
 wf::region_t wf::windecor::decoration_shadow_t::calculate_region() {

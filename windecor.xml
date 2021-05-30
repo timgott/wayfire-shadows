@@ -76,10 +76,10 @@
 			<_long>Color of the window shadow.</_long>
 			<default>#00000077</default>
 		</option>
-		<option name="shadow_radius" type="double">
+		<option name="shadow_radius" type="int">
 			<_short>Shadow radius</_short>
 			<_long>Sets the shadow radius in pixels.</_long>
-			<default>20</default>
+			<default>40</default>
 		</option>
 	</plugin>
 </wayfire>

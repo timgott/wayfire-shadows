@@ -25,7 +25,7 @@ class decoration_shadow_t {
         wlr_box calculate_padding(const wf::geometry_t window_geometry) const;
 
         wf::option_wrapper_t<wf::color_t> shadow_color{ "windecor/shadow_color" };
-        wf::option_wrapper_t<double>      shadow_radius{ "windecor/shadow_radius" };
+        wf::option_wrapper_t<int>      shadow_radius{ "windecor/shadow_radius" };
 };
 
 }
