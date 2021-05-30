@@ -318,28 +318,22 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
             int current_titlebar  =
                 theme.get_title_height() + theme.get_border_size();
             
-            int shadow_radius = shadow.get_radius();
+            int shadow_radius = view->tiled_edges == 0 ? shadow.get_radius() : 0;
 
-            int tiled_edges = view->tiled_edges;
-            int shadow_top = (tiled_edges & WLR_EDGE_TOP) ? 0 : shadow_radius;
-            int shadow_left = (tiled_edges & WLR_EDGE_LEFT) ? 0 : shadow_radius;
-            int shadow_right = (tiled_edges & WLR_EDGE_RIGHT) ? 0 : shadow_radius;
-            int shadow_bottom = (tiled_edges & WLR_EDGE_BOTTOM) ? 0 : shadow_radius;
-
-            int margin_top = current_titlebar + current_thickness + shadow_top;
-            int margin_left = current_thickness + shadow_left;
-            int margin_right = current_thickness + shadow_right;
-            int margin_bottom = current_thickness + shadow_bottom;
+            int margin_top = current_titlebar + current_thickness + shadow_radius;
+            int margin_left = current_thickness + shadow_radius;
+            int margin_right = current_thickness + shadow_radius;
+            int margin_bottom = current_thickness + shadow_radius;
 
             outer_offset_left = -margin_left;
             outer_offset_top = -margin_top;
             outer_offset_width = margin_left + margin_right;
             outer_offset_height = margin_top + margin_bottom;
 
-            shadow_padding_horizontal = shadow_left + shadow_right;
-            shadow_padding_vertical = shadow_top + shadow_bottom;
+            shadow_padding_horizontal = shadow_radius + shadow_radius;
+            shadow_padding_vertical = shadow_radius + shadow_radius;
 
-            shadow_offset = {shadow_left, shadow_top};
+            shadow_offset = {shadow_radius, shadow_radius};
 
             update_frame_region();
         }
