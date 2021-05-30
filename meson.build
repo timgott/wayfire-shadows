@@ -31,7 +31,8 @@ decoration = shared_module(
         'deco-button.cpp',
         'deco-icontheme.cpp',
         'deco-layout.cpp',
-        'deco-theme.cpp'
+        'deco-theme.cpp',
+        'deco-shadow.cpp'
     ],
 
     dependencies: [

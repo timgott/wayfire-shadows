@@ -14,6 +14,7 @@
 #include "deco-subsurface.hpp"
 #include "deco-layout.hpp"
 #include "deco-theme.hpp"
+#include "deco-shadow.hpp"
 
 #include <wayfire/plugins/common/cairo-util.hpp>
 
@@ -22,8 +23,14 @@
 class simple_decoration_surface : public wf::surface_interface_t, public wf::compositor_surface_t, public wf::decorator_frame_t_t {
 
     bool _mapped = true;
-    int current_thickness;
-    int current_titlebar;
+    
+    int outer_offset_left;
+    int outer_offset_top;
+    int outer_offset_width;
+    int outer_offset_height;
+
+    wf::point_t shadow_offset;
+    int shadow_padding;
 
     wayfire_view view;
     wf::signal_callback_t title_set = [=] ( wf::signal_data_t *data ) {
@@ -57,7 +64,9 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     wf::windecor::decoration_theme_t theme;
     wf::windecor::decoration_layout_t layout;
-    wf::region_t cached_region;
+    wf::windecor::decoration_shadow_t shadow;
+    wf::region_t frame_region;
+    wf::region_t outer_region;
 
   public:
     simple_decoration_surface( wayfire_view view ) :
@@ -85,7 +94,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     wf::point_t get_offset() final {
 
-        return {-current_thickness, -current_titlebar};
+        return {outer_offset_left, outer_offset_top};
     }
 
     virtual wf::dimensions_t get_size() const final {
@@ -102,9 +111,13 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     void render_scissor_box( const wf::framebuffer_t& fb, wf::point_t origin, const wlr_box& scissor ) {
 
+        /* Draw shadow */
+        shadow.render(fb, origin, scissor);
+
         /* Clear background */
-        wlr_box geometry{origin.x, origin.y, width, height};
-        theme.render_background( fb, geometry, scissor, active );
+        wf::point_t frame_origin = origin + shadow_offset;
+        wf::geometry_t frame_geometry = {frame_origin.x, frame_origin.y, width - shadow_padding, height - shadow_padding};
+        theme.render_background( fb, frame_geometry, scissor, active );
 
         /* Draw title & buttons */
         auto renderables = layout.get_renderable_areas();
@@ -112,19 +125,19 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
             if ( item->get_type() == wf::windecor::DECORATION_AREA_TITLE ) {
                 OpenGL::render_begin( fb );
                 fb.logic_scissor( scissor );
-                render_title( fb, item->get_geometry() + origin );
+                render_title( fb, item->get_geometry() + frame_origin );
                 OpenGL::render_end();
             }
 
             else { // button
-                item->as_button().render( fb, item->get_geometry() + origin, scissor );
+                item->as_button().render( fb, item->get_geometry() + frame_origin, scissor );
             }
         }
     }
 
     virtual void simple_render( const wf::framebuffer_t& fb, int x, int y, const wf::region_t& damage ) override {
 
-        wf::region_t frame = this->cached_region + wf::point_t{x, y};
+        wf::region_t frame = this->outer_region + wf::point_t{x, y};
         frame &= damage;
 
         for ( const auto& box : frame )
@@ -135,14 +148,14 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     bool accepts_input( int32_t sx, int32_t sy ) override
     {
-        return pixman_region32_contains_point( cached_region.to_pixman(),
+        return pixman_region32_contains_point( frame_region.to_pixman(),
             sx, sy, NULL );
     }
 
     /* wf::compositor_surface_t implementation */
     virtual void on_pointer_enter( int x, int y ) override
     {
-        layout.handle_motion( x, y );
+        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
     }
 
     virtual void on_pointer_leave() override
@@ -152,7 +165,7 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     virtual void on_pointer_motion( int x, int y ) override
     {
-        layout.handle_motion( x, y );
+        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
     }
 
     virtual void on_pointer_button( uint32_t button, uint32_t state ) override
@@ -200,13 +213,13 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
 
     virtual void on_touch_down( int x, int y ) override
     {
-        layout.handle_motion( x, y );
+        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
         handle_action( layout.handle_press_event() );
     }
 
     virtual void on_touch_motion( int x, int y ) override {
 
-        layout.handle_motion( x, y );
+        layout.handle_motion( x + shadow_offset.x, y + shadow_offset.y );
     }
 
     virtual void on_touch_up() override {
@@ -218,18 +231,18 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     /* frame implementation */
     virtual wf::geometry_t expand_wm_geometry( wf::geometry_t contained_wm_geometry ) override {
 
-        contained_wm_geometry.x     -= current_thickness;
-        contained_wm_geometry.y     -= current_titlebar;
-        contained_wm_geometry.width += 2 * current_thickness;
-        contained_wm_geometry.height += current_thickness + current_titlebar;
+        contained_wm_geometry.x     += outer_offset_left;
+        contained_wm_geometry.y     += outer_offset_top;
+        contained_wm_geometry.width += outer_offset_width;
+        contained_wm_geometry.height += outer_offset_height;
 
         return contained_wm_geometry;
     }
 
     virtual void calculate_resize_size( int& target_width, int& target_height ) override {
 
-        target_width  -= 2 * current_thickness;
-        target_height -= current_thickness + current_titlebar;
+        target_width  -= outer_offset_width;
+        target_height -= outer_offset_height;
 
         target_width  = std::max( target_width, 1 );
         target_height = std::max( target_height, 1 );
@@ -274,9 +287,10 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
         width  = view_geometry.width;
         height = view_geometry.height;
 
-        layout.resize( width, height );
+        layout.resize( width - shadow_padding, height - shadow_padding );
+        shadow.resize( width, height );
         if ( !view->fullscreen ) {
-            this->cached_region = layout.calculate_region();
+            update_frame_region();
         }
 
         view->damage();
@@ -289,16 +303,38 @@ class simple_decoration_surface : public wf::surface_interface_t, public wf::com
     {
         if ( view->fullscreen )
         {
-            current_thickness = 0;
-            current_titlebar  = 0;
-            this->cached_region.clear();
+            outer_offset_left = 0;
+            outer_offset_top  = 0;
+            this->frame_region.clear();
         } else
         {
-            current_thickness = theme.get_border_size();
-            current_titlebar  =
+            int current_thickness = theme.get_border_size();
+            int current_titlebar  =
                 theme.get_title_height() + theme.get_border_size();
-            this->cached_region = layout.calculate_region();
+            
+            int shadow_radius = shadow.get_radius();
+
+            int border_top = current_titlebar + current_thickness + shadow_radius;
+            int border_side = current_thickness + shadow_radius;
+
+            outer_offset_left = -border_side;
+            outer_offset_top = -border_top;
+            outer_offset_width = border_side + border_side;
+            outer_offset_height = border_top + border_side;
+
+            shadow_padding = shadow.get_radius() * 2;
+
+            shadow_offset = {shadow_radius, shadow_radius};
+
+            update_frame_region();
         }
+    }
+
+    void update_frame_region()
+    {
+        wf::region_t inner_region = layout.calculate_region() + shadow_offset;
+        this->frame_region = inner_region;
+        this->outer_region = inner_region | shadow.calculate_region();
     }
 
     virtual void notify_view_fullscreen() override

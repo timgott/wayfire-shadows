@@ -71,5 +71,15 @@
 			<_long>Color of the minimize button.</_long>
 			<default>#EDD40077</default>
 		</option>
+		<option name="shadow_color" type="color">
+			<_short>Shadow color</_short>
+			<_long>Color of the window shadow.</_long>
+			<default>#00000077</default>
+		</option>
+		<option name="shadow_radius" type="double">
+			<_short>Shadow radius</_short>
+			<_long>Sets the shadow radius in pixels.</_long>
+			<default>20</default>
+		</option>
 	</plugin>
 </wayfire>
