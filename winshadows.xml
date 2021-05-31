@@ -19,5 +19,10 @@
 			<_long>Sets the shadow radius in pixels.</_long>
 			<default>40</default>
 		</option>
+		<option name="clip_shadow_inside" type="bool">
+			<_short>Disable shadow within window rectangle</_short>
+			<_long>Disables the shadow within the rectangular bounds of a window, helping with rounded corners.</_long>
+			<default>false</default>
+		</option>
 	</plugin>
 </wayfire>

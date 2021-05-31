@@ -104,7 +104,10 @@ int wf::windecor::decoration_shadow_t::get_radius() const {
 
 wf::region_t wf::windecor::decoration_shadow_t::calculate_region() const {
     wf::region_t region(geometry);
-    region ^= inner_geometry;
+
+    if (clip_shadow_inside) {
+        region ^= inner_geometry;
+    }
 
     return region;
 } 
