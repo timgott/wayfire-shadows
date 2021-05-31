@@ -102,24 +102,28 @@ int wf::windecor::decoration_shadow_t::get_radius() const {
     return shadow_radius;
 }
 
-wf::region_t wf::windecor::decoration_shadow_t::calculate_region() {
+wf::region_t wf::windecor::decoration_shadow_t::calculate_region() const {
     wf::region_t region(geometry);
     region ^= inner_geometry;
 
     return region;
 } 
 
-void wf::windecor::decoration_shadow_t::resize(const int width, const int height) {
+wf::geometry_t wf::windecor::decoration_shadow_t::get_geometry() const {
+    return geometry;
+}
+
+void wf::windecor::decoration_shadow_t::resize(const int window_width, const int window_height) {
     int radius = get_radius();
 
-    geometry =  {
+    inner_geometry =  {
         0,
         0,
-        width,
-        height
+        window_width,
+        window_height
     };
 
-    inner_geometry = {
-        radius, radius, width - radius * 2, height - radius * 2
+    geometry = {
+        -radius, -radius, window_width + radius * 2, window_height + radius * 2
     };
 }

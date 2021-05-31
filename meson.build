@@ -1,5 +1,5 @@
 project(
-	'wayfire-plugin-windecor',
+	'wayfire-plugin-winshadows',
     'c',
 	'cpp',
 	version: '0.1',
@@ -24,14 +24,10 @@ add_project_arguments(['-DWLR_USE_UNSTABLE'], language: ['cpp', 'c'])
 add_project_arguments(['-DWAYFIRE_PLUGIN'], language: ['cpp', 'c'])
 add_project_link_arguments(['-rdynamic'], language:'cpp')
 
-decoration = shared_module(
-    'windecor', [
-        'decoration.cpp',
-        'deco-subsurface.cpp',
-        'deco-button.cpp',
-        'deco-icontheme.cpp',
-        'deco-layout.cpp',
-        'deco-theme.cpp',
+shadows = shared_module(
+    'winshadows', [
+        'shadows.cpp',
+        'shadow-surface.cpp',
         'deco-shadow.cpp'
     ],
 
@@ -47,13 +43,13 @@ decoration = shared_module(
     install_dir: join_paths( get_option( 'libdir' ), 'wayfire' )
 )
 
-install_data( 'windecor.xml', install_dir: wayfire.get_variable( pkgconfig: 'metadatadir' ) )
-install_data( 'executable.svg', install_dir: 'share/wayfire/windecor')
+install_data( 'winshadows.xml', install_dir: wayfire.get_variable( pkgconfig: 'metadatadir' ) )
+install_data( 'executable.svg', install_dir: 'share/wayfire/winshadows')
 
 summary = [
 	'',
 	'----------------',
-	'wayfire-plugin-windecor @0@'.format( meson.project_version() ),
+	'wayfire-plugin-winshadows @0@'.format( meson.project_version() ),
 	'----------------',
 	''
 ]

@@ -1,7 +1,6 @@
 #pragma once
+#include <wayfire/option-wrapper.hpp>
 #include <wayfire/opengl.hpp>
-
-#include "deco-theme.hpp"
 
 namespace wf {
 namespace windecor {
@@ -14,9 +13,11 @@ class decoration_shadow_t {
         decoration_shadow_t();
         void render(const framebuffer_t& fb, wf::point_t origin, const geometry_t& scissor);
         void resize(const int width, const int height);
-        wf::region_t calculate_region();
+        
+        wf::region_t calculate_region() const;
 
         int get_radius() const;
+        wf::geometry_t get_geometry() const;
     
     private:
         OpenGL::program_t program;
@@ -24,8 +25,8 @@ class decoration_shadow_t {
         wf::geometry_t inner_geometry;
         wlr_box calculate_padding(const wf::geometry_t window_geometry) const;
 
-        wf::option_wrapper_t<wf::color_t> shadow_color{ "windecor/shadow_color" };
-        wf::option_wrapper_t<int>      shadow_radius{ "windecor/shadow_radius" };
+        wf::option_wrapper_t<wf::color_t> shadow_color{ "winshadows/shadow_color" };
+        wf::option_wrapper_t<int>      shadow_radius{ "winshadows/shadow_radius" };
 };
 
 }
