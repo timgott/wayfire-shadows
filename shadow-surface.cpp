@@ -37,15 +37,8 @@ void shadow_decoration_surface::update_geometry() {
     
     wf::point_t frame_offset = wf::origin(view->get_wm_geometry()) - wf::origin(view->get_output_geometry());
 
-    if ( view->fullscreen || view->tiled_edges)
-    {
-        surface_geometry = {0, 0, 0, 0};
-        this->shadow_region.clear();
-    } else
-    {
-        surface_geometry = shadow.get_geometry() + frame_offset;
-        this->shadow_region = shadow.calculate_region();
-    }
+    surface_geometry = shadow.get_geometry() + frame_offset;
+    this->shadow_region = shadow.calculate_region();
 }
 
 void shadow_decoration_surface::unmap() {
