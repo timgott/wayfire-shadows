@@ -4,10 +4,10 @@
 		<_short>Window Shadows</_short>
 		<_long>Server Side Shadows for windows on Wayfire</_long>
 		<category>Effects</category>
-		<option name="ignore_views" type="string">
-			<_short>Decoration disabled for specified window types</_short>
-			<_long>Disables window decoration for windows matching the specified criteria.</_long>
-			<default>none</default>
+		<option name="enabled_views" type="string">
+			<_short>Decoration enabled for specified window types</_short>
+			<_long>Enables window shadows for windows matching the specified criteria.</_long>
+			<default>type is "toplevel"</default>
 		</option>
 		<option name="shadow_color" type="color">
 			<_short>Shadow color</_short>

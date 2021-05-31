@@ -18,7 +18,7 @@ class wayfire_shadows : public wf::plugin_interface_t
 {
     const std::string surface_data_name = "shadow_surface";
 
-    wf::view_matcher_t ignore_views{"winshadows/ignore_views"};
+    wf::view_matcher_t enabled_views{"winshadows/enabled_views"};
 
     wf::signal_connection_t view_updated{
         [=] (wf::signal_data_t *data)
@@ -43,21 +43,21 @@ class wayfire_shadows : public wf::plugin_interface_t
     }
 
     /**
-     * Uses view_matcher_t to match whether the given view needs to be
-     * ignored for decoration
+     * Checks whether the given view has server side decoration and is in
+     * the white list.
      *
      * @param view The view to match
-     * @return Whether the given view should be ignored?
+     * @return Whether the view should get a shadow.
      */
-    bool is_view_ignored(wayfire_view view)
+    bool is_view_shadow_enabled(wayfire_view view)
     {
-        return ignore_views.matches(view);
+        return enabled_views.matches(view);
     }
 
     wf::wl_idle_call idle_deactivate;
     void update_view_decoration(wayfire_view view)
     {
-        if (!is_view_ignored(view))
+        if (is_view_shadow_enabled(view))
         {
             if (!is_view_initialized(view)) {
                 if (output->activate_plugin(grab_interface))
