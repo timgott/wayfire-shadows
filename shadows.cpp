@@ -106,9 +106,9 @@ class wayfire_shadows : public wf::plugin_interface_t
     {
         auto view_data = view->get_data<view_shadow_data>(surface_data_name);
         if (view_data != nullptr) {
+            view->damage();
             view->remove_subsurface(view_data->shadow_ptr);
             view->erase_data(surface_data_name);
-            view->damage();
         }
     }
 
