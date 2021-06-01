@@ -1,5 +1,18 @@
 #include "shadow-surface.hpp"
 
+shadow_decoration_surface::shadow_decoration_surface( wayfire_view view ) {
+    this->view = view;
+    view->connect_signal("subsurface-removed", &on_subsurface_removed);
+    view->connect_signal("geometry-changed", &on_geometry_changed);
+
+    update_geometry();
+}
+
+shadow_decoration_surface::~shadow_decoration_surface() {
+    view->disconnect_signal(&on_subsurface_removed);
+    view->disconnect_signal(&on_geometry_changed);
+}
+
 /* wf::surface_interface_t implementation */
 bool shadow_decoration_surface::is_mapped() const {
     return _mapped;

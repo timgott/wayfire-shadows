@@ -29,22 +29,6 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     wf::windecor::decoration_shadow_t shadow;
     wf::region_t shadow_region;
 
-  public:
-    shadow_decoration_surface( wayfire_view view ) {
-
-        this->view = view;
-        view->connect_signal("subsurface-removed", &on_subsurface_removed);
-        view->connect_signal("geometry-changed", &on_geometry_changed);
-
-        // make sure to hide frame if the view is fullscreen
-        update_geometry();
-    }
-
-    virtual ~shadow_decoration_surface() {
-        view->disconnect_signal(&on_subsurface_removed);
-        view->disconnect_signal(&on_geometry_changed);
-    }
-
     wf::signal_connection_t on_subsurface_removed = [&] (auto data) {
 
         auto ev = static_cast<wf::subsurface_removed_signal*>(data);
@@ -56,6 +40,12 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     wf::signal_connection_t on_geometry_changed = [&] (auto) {
         update_geometry();
     };
+    
+  public:
+    shadow_decoration_surface( wayfire_view view );
+
+    virtual ~shadow_decoration_surface();
+
 
     virtual bool is_mapped() const final;
 
