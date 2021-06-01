@@ -121,8 +121,6 @@ class wayfire_shadows : public wf::plugin_interface_t
             deinit_view(view);
         }
     }
-
-    // std::string icon_for_app
 };
 
 DECLARE_WAYFIRE_PLUGIN(wayfire_shadows);
