@@ -1,4 +1,4 @@
-# WinShadows Plugin for Wayfire
+# Window Shadows Plugin for Wayfire
 
 This is a plugin for wayfire that adds window shadows. The code was initially a
 fork of <https://gitlab.com/wayfireplugins/windecor> but only a small part of
