@@ -9,6 +9,11 @@
 			<_long>Enables window shadows for windows matching the specified criteria.</_long>
 			<default>type is "toplevel" &amp; floating is true</default>
 		</option>
+		<option name="include_undecorated_views" type="bool">
+			<_short>Include windows that have their own decoration</_short>
+			<_long>Enables window shadows on windows that do not request server side decoration.</_long>
+			<default>false</default>
+		</option>
 		<option name="shadow_color" type="color">
 			<_short>Shadow color</_short>
 			<_long>Color of the window shadow.</_long>

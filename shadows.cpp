@@ -18,7 +18,8 @@ class wayfire_shadows : public wf::plugin_interface_t
 {
     const std::string surface_data_name = "shadow_surface";
 
-    wf::view_matcher_t enabled_views{"winshadows/enabled_views"};
+    wf::view_matcher_t enabled_views {"winshadows/enabled_views"};
+    wf::option_wrapper_t<bool> include_undecorated_views {"winshadows/include_undecorated_views"};
 
     wf::signal_connection_t view_updated{
         [=] (wf::signal_data_t *data)
@@ -53,7 +54,12 @@ class wayfire_shadows : public wf::plugin_interface_t
      */
     bool is_view_shadow_enabled(wayfire_view view)
     {
-        return enabled_views.matches(view);
+        return enabled_views.matches(view) && (is_view_decorated(view) || include_undecorated_views);
+    }
+
+    bool is_view_decorated(wayfire_view view)
+    {
+        return view->should_be_decorated() || view->get_decoration() != nullptr;
     }
 
     wf::wl_idle_call idle_deactivate;
