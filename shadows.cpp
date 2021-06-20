@@ -28,6 +28,32 @@ class wayfire_shadows : public wf::plugin_interface_t
         }
     };
 
+    wayfire_view last_focused_view = nullptr;
+    
+    wf::signal_connection_t focus_changed{
+        [=] (wf::signal_data_t *data)
+        {
+            wayfire_view focused_view = get_signaled_view(data);
+            if (last_focused_view != nullptr && last_focused_view) {
+                update_view_decoration(last_focused_view);
+            }
+            if (focused_view != nullptr) {
+                update_view_decoration(focused_view);
+            }
+            last_focused_view = focused_view;
+        }
+    };
+
+    wf::signal_connection_t view_unmapped{
+        [=] (wf::signal_data_t *data)
+        {
+            wayfire_view view = get_signaled_view(data);
+            if (view == last_focused_view) {
+                last_focused_view = nullptr;
+            }
+        }
+    };
+
   public:
     void init() override
     {
@@ -37,6 +63,8 @@ class wayfire_shadows : public wf::plugin_interface_t
         output->connect_signal("view-mapped", &view_updated);
         output->connect_signal("view-decoration-state-updated", &view_updated);
         output->connect_signal("view-tiled", &view_updated);
+        output->connect_signal("view-focused", &focus_changed);
+        output->connect_signal("view-unmapped", &view_unmapped);
 
         for (auto& view :
              output->workspace->get_views_in_layer(wf::ALL_LAYERS))
@@ -115,6 +143,8 @@ class wayfire_shadows : public wf::plugin_interface_t
     void fini() override
     {
         output->disconnect_signal(&view_updated);
+        output->disconnect_signal(&focus_changed);
+        output->disconnect_signal(&view_unmapped);
 
         for (auto& view : output->workspace->get_views_in_layer(wf::ALL_LAYERS))
         {
