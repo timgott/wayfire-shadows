@@ -28,7 +28,7 @@ wf::dimensions_t shadow_decoration_surface::get_size() const {
     return wf::dimensions(surface_geometry);
 }
 
-void shadow_decoration_surface::simple_render( const wf::framebuffer_t& fb, int x, int y, const wf::region_t& damage ) {
+void shadow_decoration_surface::simple_render( const wf::framebuffer_t& fb, int, int, const wf::region_t& damage ) {
     wf::point_t window_origin = wf::origin(view->get_wm_geometry());
     wf::region_t frame = this->shadow_region + window_origin;
     frame &= damage;
