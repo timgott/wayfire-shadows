@@ -12,10 +12,6 @@
 #include <wayfire/signal-definitions.hpp>
 #include "deco-shadow.hpp"
 
-#include <wayfire/plugins/common/cairo-util.hpp>
-
-#include <cairo.h>
-
 class shadow_decoration_surface : public wf::surface_interface_t {
 
     bool _mapped = true;
