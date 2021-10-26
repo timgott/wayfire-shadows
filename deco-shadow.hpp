@@ -1,6 +1,7 @@
 #pragma once
 #include <wayfire/option-wrapper.hpp>
 #include <wayfire/opengl.hpp>
+#include <wayfire/region.hpp>
 
 namespace wf {
 namespace windecor {
