@@ -14,6 +14,11 @@ struct view_shadow_data : wf::custom_data_t {
     nonstd::observer_ptr<shadow_decoration_surface> shadow_ptr;
 };
 
+namespace wayfire_shadows_globals {
+    // Global because focus has to be tracked across outputs, but there is an instance of the plugin per output
+    wayfire_view last_focused_view = nullptr;
+}
+
 class wayfire_shadows : public wf::plugin_interface_t
 {
     const std::string surface_data_name = "shadow_surface";
@@ -27,20 +32,19 @@ class wayfire_shadows : public wf::plugin_interface_t
             update_view_decoration(get_signaled_view(data));
         }
     };
-
-    wayfire_view last_focused_view = nullptr;
     
     wf::signal_connection_t focus_changed{
         [=] (wf::signal_data_t *data)
         {
             wayfire_view focused_view = get_signaled_view(data);
-            if (last_focused_view != nullptr && last_focused_view) {
-                update_view_decoration(last_focused_view);
+            wayfire_view last_focused = wayfire_shadows_globals::last_focused_view;
+            if (last_focused != nullptr) {
+                update_view_decoration(last_focused);
             }
             if (focused_view != nullptr) {
                 update_view_decoration(focused_view);
             }
-            last_focused_view = focused_view;
+            wayfire_shadows_globals::last_focused_view = focused_view;
         }
     };
 
@@ -48,8 +52,8 @@ class wayfire_shadows : public wf::plugin_interface_t
         [=] (wf::signal_data_t *data)
         {
             wayfire_view view = get_signaled_view(data);
-            if (view == last_focused_view) {
-                last_focused_view = nullptr;
+            if (view == wayfire_shadows_globals::last_focused_view) {
+                wayfire_shadows_globals::last_focused_view = nullptr;
             }
         }
     };
