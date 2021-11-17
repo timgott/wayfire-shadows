@@ -31,6 +31,7 @@ shadows = shared_module(
     dependencies: [
         wlroots,
         wfconfig,
+        wayfire
     ],
 
     install: true,
