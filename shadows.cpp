@@ -91,7 +91,7 @@ class wayfire_shadows : public wf::plugin_interface_t
 
     bool is_view_decorated(wayfire_view view)
     {
-        return view->should_be_decorated() || view->get_decoration() != nullptr;
+        return view->should_be_decorated();
     }
 
     wf::wl_idle_call idle_deactivate;
@@ -122,7 +122,7 @@ class wayfire_shadows : public wf::plugin_interface_t
     void init_view( wayfire_view view )
     {
         auto surf = std::make_unique<shadow_decoration_surface>( view );
-        
+
         auto view_data = std::make_unique<view_shadow_data>(surf.get());
 
         view->store_data( 
