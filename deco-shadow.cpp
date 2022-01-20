@@ -56,11 +56,24 @@ wf::windecor::decoration_shadow_t::decoration_shadow_t() {
 
 void wf::windecor::decoration_shadow_t::render(const framebuffer_t& fb, wf::point_t window_origin, const geometry_t& scissor) {
     float radius = shadow_radius;
+
     wf::color_t color = shadow_color;
+
+    // Emissiveness makes color additive instead of opaque
+    // (exploiting premultiplied alpha)
+    double alpha = color.a * (1.0 - shadow_emissiveness);
+
+    // Premultiply alpha for shader
+    glm::vec4 premultiplied = {
+        color.r * color.a,
+        color.g * color.a,
+        color.b * color.a,
+        alpha
+    };
 
     OpenGL::render_begin( fb );
     fb.logic_scissor( scissor );
-    
+
     program.use(wf::TEXTURE_TYPE_RGBA);
 
     float x = window_origin.x + geometry.x;
@@ -76,11 +89,11 @@ void wf::windecor::decoration_shadow_t::render(const framebuffer_t& fb, wf::poin
     };
 
     glm::mat4 matrix = fb.get_orthographic_projection();
-    
+
     program.attrib_pointer("position", 2, 0, vertexData);
     program.uniformMatrix4f("MVP", matrix);
     program.uniform1f("sigma", radius / 3.0f);
-    program.uniform4f("color", {color.r, color.g, color.b, color.a});
+    program.uniform4f("color", premultiplied);
 
     float inner_x = inner_geometry.x + window_origin.x;
     float inner_y = inner_geometry.y + window_origin.y;
@@ -88,7 +101,6 @@ void wf::windecor::decoration_shadow_t::render(const framebuffer_t& fb, wf::poin
     float inner_h = inner_geometry.height;
     program.uniform2f("lower", inner_x, inner_y);
     program.uniform2f("upper", inner_x + inner_w, inner_y + inner_h);
-    
 
     GL_CALL(glEnable(GL_BLEND));
     GL_CALL(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));

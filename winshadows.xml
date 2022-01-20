@@ -17,16 +17,24 @@
 		<option name="shadow_color" type="color">
 			<_short>Shadow color</_short>
 			<_long>Color of the window shadow.</_long>
-			<default>#00000099</default>
+			<default>#00000070</default>
+		</option>
+		<option name="shadow_emissiveness" type="double">
+			<_short>Shadow emissiveness</_short>
+			<_long>Controls the blending of the shadow, 0 is normal blending, 1 is additive. Set to 0 for shadows and between 0 and 1 for glow effects.</_long>
+			<default>0.0</default>
+			<min>0.0</min>
+			<max>1.0</max>
+			<precision>0.1</precision>
 		</option>
 		<option name="shadow_radius" type="int">
 			<_short>Shadow radius</_short>
 			<_long>Sets the shadow radius in pixels.</_long>
-			<default>100</default>
+			<default>60</default>
 		</option>
 		<option name="clip_shadow_inside" type="bool">
 			<_short>Clip shadow to window rectangle</_short>
-			<_long>Does not render the shadow within the rectangular bounds of a window, looks bad on rounded corners.</_long>
+			<_long>Does not render the shadow within the rectangular bounds of a window, may look bad on rounded corners.</_long>
 			<default>true</default>
 		</option>
 	</plugin>
