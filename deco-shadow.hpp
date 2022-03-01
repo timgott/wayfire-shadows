@@ -23,13 +23,15 @@ class decoration_shadow_t {
     private:
         OpenGL::program_t program;
         wf::geometry_t geometry;
-        wf::geometry_t inner_geometry;
+        wf::geometry_t window_geometry;
         wlr_box calculate_padding(const wf::geometry_t window_geometry) const;
 
         wf::option_wrapper_t<wf::color_t> shadow_color { "winshadows/shadow_color" };
         wf::option_wrapper_t<double> shadow_emissiveness { "winshadows/shadow_emissiveness" };
         wf::option_wrapper_t<int> shadow_radius { "winshadows/shadow_radius" };
         wf::option_wrapper_t<bool> clip_shadow_inside { "winshadows/clip_shadow_inside" };
+        wf::option_wrapper_t<int> vertical_offset { "winshadows/vertical_offset" };
+        wf::option_wrapper_t<int> horizontal_offset { "winshadows/horizontal_offset" };
 };
 
 }

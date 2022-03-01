@@ -95,10 +95,10 @@ void wf::windecor::decoration_shadow_t::render(const framebuffer_t& fb, wf::poin
     program.uniform1f("sigma", radius / 3.0f);
     program.uniform4f("color", premultiplied);
 
-    float inner_x = inner_geometry.x + window_origin.x;
-    float inner_y = inner_geometry.y + window_origin.y;
-    float inner_w = inner_geometry.width;
-    float inner_h = inner_geometry.height;
+    float inner_x = window_geometry.x + window_origin.x + horizontal_offset;
+    float inner_y = window_geometry.y + window_origin.y + vertical_offset;
+    float inner_w = window_geometry.width;
+    float inner_h = window_geometry.height;
     program.uniform2f("lower", inner_x, inner_y);
     program.uniform2f("upper", inner_x + inner_w, inner_y + inner_h);
 
@@ -118,7 +118,7 @@ wf::region_t wf::windecor::decoration_shadow_t::calculate_region() const {
     wf::region_t region(geometry);
 
     if (clip_shadow_inside) {
-        region ^= inner_geometry;
+        region ^= window_geometry;
     }
 
     return region;
@@ -131,7 +131,7 @@ wf::geometry_t wf::windecor::decoration_shadow_t::get_geometry() const {
 void wf::windecor::decoration_shadow_t::resize(const int window_width, const int window_height) {
     int radius = get_radius();
 
-    inner_geometry =  {
+    window_geometry =  {
         0,
         0,
         window_width,
@@ -139,6 +139,7 @@ void wf::windecor::decoration_shadow_t::resize(const int window_width, const int
     };
 
     geometry = {
-        -radius, -radius, window_width + radius * 2, window_height + radius * 2
+        -radius + horizontal_offset, -radius + vertical_offset,
+        window_width + radius * 2, window_height + radius * 2
     };
 }
