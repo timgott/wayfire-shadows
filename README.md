@@ -14,8 +14,8 @@ You should have first compiled and installed wlroots, wf-config and wayfire.
   - `git clone https://github.com/timgott/wayfire-shadows.git`
 - Enter the cloned folder
   - `cd wayfire-shadows`
-- Configure the project with meson (change `/usr` to your Wayfire installation prefix if necessary)
-  - `meson build --prefix=/usr --buildtype=release`
+- Configure the project with meson (point to your Wayfire installation prefix with `--prefix=...` if necessary)
+  - `meson build --buildtype=release`
 - Compile and install using ninja
   - `ninja -C build && sudo ninja -C build install`
 
