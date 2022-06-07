@@ -5,6 +5,9 @@ fork of <https://gitlab.com/wayfireplugins/windecor> but only a small part of
 that remains in the code.
 
 ## Compile and install
+
+This branch targets wayfire master version. If you want to build for wayfire 0.7.x, switch to the branch `backport0.7`.
+
 You should have first compiled and installed wlroots, wf-config and wayfire.
 
 - Get the sources
