@@ -9,9 +9,9 @@
 #include "shadow-surface.hpp"
 
 struct view_shadow_data : wf::custom_data_t {
-    view_shadow_data(nonstd::observer_ptr<shadow_decoration_surface> shadow_ptr) : shadow_ptr(shadow_ptr) {};
+    view_shadow_data(nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr) : shadow_ptr(shadow_ptr) {};
 
-    nonstd::observer_ptr<shadow_decoration_surface> shadow_ptr;
+    nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr;
 };
 
 namespace wayfire_shadows_globals {
@@ -121,7 +121,7 @@ class wayfire_shadows : public wf::plugin_interface_t
 
     void init_view( wayfire_view view )
     {
-        auto surf = std::make_unique<shadow_decoration_surface>( view );
+        auto surf = std::make_unique<wf::winshadows::shadow_decoration_surface>( view );
 
         auto view_data = std::make_unique<view_shadow_data>(surf.get());
 

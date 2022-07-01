@@ -1,5 +1,7 @@
 #include "shadow-surface.hpp"
 
+namespace wf::winshadows {
+
 shadow_decoration_surface::shadow_decoration_surface( wayfire_view view ) {
     this->view = view;
     view->connect_signal("subsurface-removed", &on_subsurface_removed);
@@ -35,7 +37,7 @@ void shadow_decoration_surface::simple_render( const wf::framebuffer_t& fb, int,
 
     for (const auto& box : frame)
     {
-        shadow.render(fb, window_origin, wlr_box_from_pixman_box(box));
+        shadow.render(fb, window_origin, wlr_box_from_pixman_box(box), view->activated);
     }
 }
 
@@ -58,4 +60,6 @@ void shadow_decoration_surface::unmap() {
 
     _mapped = false;
     wf::emit_map_state_change( this );
+}
+
 }
