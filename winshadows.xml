@@ -17,7 +17,7 @@
 		<option name="shadow_color" type="color">
 			<_short>Shadow color</_short>
 			<_long>Color of the window shadow.</_long>
-			<default>#00000070</default>
+			<default>#00000050</default>
 		</option>
 		<option name="shadow_radius" type="int">
 			<_short>Shadow radius</_short>
@@ -32,7 +32,7 @@
 		<option name="vertical_offset" type="int">
 			<_short>Vertical offset</_short>
 			<_long>Number of pixels to shift the shadow by in vertical direction.</_long>
-			<default>0</default>
+			<default>5</default>
 		</option>
 		<option name="horizontal_offset" type="int">
 			<_short>Horizontal offset</_short>
@@ -42,12 +42,12 @@
 		<option name="glow_radius" type="int">
 			<_short>Focus glow radius</_short>
 			<_long>Sets the glow radius around the focused window in pixels. 0 to disable.</_long>
-			<default>10</default>
+			<default>0</default>
 		</option>
 		<option name="glow_color" type="color">
 			<_short>Focus glow color</_short>
 			<_long>Color of the glow of the focused window.</_long>
-			<default>#FFFFFF50</default>
+            <default>#97AFCD28</default>
 		</option>
 		<option name="glow_emissivity" type="double">
 			<_short>Glow emissivity</_short>
