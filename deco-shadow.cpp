@@ -41,7 +41,7 @@ void wf::winshadows::decoration_shadow_t::render(const framebuffer_t& fb, wf::po
     };
 
     // Enable glow shader only when glow radius > 0 and view is focused
-    bool use_glow = (glow && glow_radius_option > 0);
+    bool use_glow = (glow && is_glow_enabled());
     OpenGL::program_t &program = 
         use_glow ? shadow_glow_program : shadow_program;
 
@@ -138,4 +138,8 @@ void wf::winshadows::decoration_shadow_t::resize(const int window_width, const i
         right - left,
         bottom - top
     };
+}
+
+bool wf::winshadows::decoration_shadow_t::is_glow_enabled() const {
+    return glow_radius_option > 0;
 }

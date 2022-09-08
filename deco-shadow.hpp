@@ -17,6 +17,7 @@ class decoration_shadow_t {
         void resize(const int width, const int height);
         wf::region_t calculate_region() const;
         wf::geometry_t get_geometry() const;
+        bool is_glow_enabled() const;
 
     private:
         OpenGL::program_t shadow_program;
