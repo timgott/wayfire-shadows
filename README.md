@@ -6,9 +6,7 @@ that remains in the code.
 
 ## Compile and install
 
-This branch targets wayfire master version. If you want to build for wayfire 0.7.x, switch to the branch `backport0.7`.
-
-You should have first compiled and installed wlroots, wf-config and wayfire.
+⚠️ If your `wayfire --version` is 0.7.x then you need to switch to the branch backport0.7 (`git checkout backport0.7`) before building. The master branch currently only compiles with the **latest git** version of wayfire.
 
 - Get the sources
   - `git clone https://github.com/timgott/wayfire-shadows.git`
