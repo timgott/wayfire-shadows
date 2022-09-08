@@ -11,6 +11,13 @@ wf::winshadows::decoration_shadow_t::decoration_shadow_t() {
     OpenGL::render_end();
 }
 
+wf::winshadows::decoration_shadow_t::~decoration_shadow_t() {
+    OpenGL::render_begin();
+    shadow_program.free_resources();
+    shadow_glow_program.free_resources();
+    OpenGL::render_end();
+}
+
 void wf::winshadows::decoration_shadow_t::render(const framebuffer_t& fb, wf::point_t window_origin, const geometry_t& scissor, const bool glow) {
     float radius = shadow_radius_option;
 
