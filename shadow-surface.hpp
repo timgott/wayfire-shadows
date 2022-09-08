@@ -12,17 +12,18 @@
 #include <wayfire/signal-definitions.hpp>
 #include "deco-shadow.hpp"
 
+namespace wf::winshadows {
 class shadow_decoration_surface : public wf::surface_interface_t {
 
     bool _mapped = true;
-    
+    int _was_activated = 1; // used to check whether redrawing on focus is necessary
+
     wf::geometry_t surface_geometry;
 
     wayfire_view view;
 
     int width = 100, height = 100;
-    int active = 1; // when views are mapped, they are usually activated
-    wf::windecor::decoration_shadow_t shadow;
+    wf::winshadows::decoration_shadow_t shadow;
     wf::region_t shadow_region;
 
     wf::signal_connection_t on_subsurface_removed = [&] (auto data) {
@@ -36,7 +37,7 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     wf::signal_connection_t on_geometry_changed = [&] (auto) {
         update_geometry();
     };
-    
+
   public:
     shadow_decoration_surface( wayfire_view view );
 
@@ -56,4 +57,9 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     void unmap();
 
     void update_geometry();
+
+    bool needs_redraw();
 };
+
+}
+

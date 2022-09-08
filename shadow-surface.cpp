@@ -1,5 +1,7 @@
 #include "shadow-surface.hpp"
 
+namespace wf::winshadows {
+
 shadow_decoration_surface::shadow_decoration_surface( wayfire_view view ) {
     this->view = view;
     view->connect_signal("subsurface-removed", &on_subsurface_removed);
@@ -35,8 +37,16 @@ void shadow_decoration_surface::simple_render( const wf::framebuffer_t& fb, int,
 
     for (const auto& box : frame)
     {
-        shadow.render(fb, window_origin, wlr_box_from_pixman_box(box));
+        shadow.render(fb, window_origin, wlr_box_from_pixman_box(box), view->activated);
     }
+    _was_activated = view->activated;
+}
+
+bool shadow_decoration_surface::needs_redraw() {
+    if (shadow.is_glow_enabled()) {
+        return view->activated != _was_activated;
+    }
+    return false;
 }
 
 bool shadow_decoration_surface::accepts_input( int32_t, int32_t )
@@ -47,7 +57,7 @@ bool shadow_decoration_surface::accepts_input( int32_t, int32_t )
 void shadow_decoration_surface::update_geometry() {
     wf::geometry_t view_geometry = view->get_wm_geometry();
     shadow.resize(view_geometry.width, view_geometry.height);
-    
+
     wf::point_t frame_offset = wf::origin(view->get_wm_geometry()) - wf::origin(view->get_output_geometry());
 
     surface_geometry = shadow.get_geometry() + frame_offset;
@@ -58,4 +68,6 @@ void shadow_decoration_surface::unmap() {
 
     _mapped = false;
     wf::emit_map_state_change( this );
+}
+
 }
