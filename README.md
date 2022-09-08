@@ -27,6 +27,7 @@ Bonus: The plugin can additionally make the focused window glow.
 
 <details>
 <summary>Config used in last screenshot</summary>
+
 ```
 [decoration]
 active_color = \#A8A0C9A4
