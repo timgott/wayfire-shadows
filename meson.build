@@ -25,7 +25,8 @@ shadows = shared_module(
     'winshadows', [
         'shadows.cpp',
         'shadow-surface.cpp',
-        'deco-shadow.cpp'
+        'deco-shadow.cpp',
+        'deco-shadow.glsl.cpp',
     ],
 
     dependencies: [

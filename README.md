@@ -22,5 +22,22 @@ that remains in the code.
 By default, the plugin will add fast and nice shadows around windows that use server side decorations.
 ![image](https://raw.github.com/timgott/wayfire-shadows/screenshots/screenshots/screenshot_stripes.png)
 
-Bonus: If you really want to, you can also use the plugin to make windows glow.
-![image](https://raw.github.com/timgott/wayfire-shadows/screenshots/screenshots/screenshot_sunset.png)
+Bonus: The plugin can additionally make the focused window glow.
+![image](https://raw.github.com/timgott/wayfire-shadows/screenshots/screenshots/screenshot_glass_glow.png)
+
+<details>
+<summary>Config used in last screenshot</summary>
+```
+[decoration]
+active_color = \#A8A0C9A4
+border_size = 4
+inactive_color = \#20252338
+title_height = 0
+
+[winshadows]
+glow_color = \#97AFCD26
+glow_radius = 40
+shadow_color = \#00000033
+shadow_radius = 20
+```
+</details>

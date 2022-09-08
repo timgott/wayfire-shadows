@@ -9,9 +9,9 @@
 #include "shadow-surface.hpp"
 
 struct view_shadow_data : wf::custom_data_t {
-    view_shadow_data(nonstd::observer_ptr<shadow_decoration_surface> shadow_ptr) : shadow_ptr(shadow_ptr) {};
+    view_shadow_data(nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr) : shadow_ptr(shadow_ptr) {};
 
-    nonstd::observer_ptr<shadow_decoration_surface> shadow_ptr;
+    nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr;
 };
 
 namespace wayfire_shadows_globals {
@@ -32,7 +32,7 @@ class wayfire_shadows : public wf::plugin_interface_t
             update_view_decoration(get_signaled_view(data));
         }
     };
-    
+
     wf::signal_connection_t focus_changed{
         [=] (wf::signal_data_t *data)
         {
@@ -99,7 +99,9 @@ class wayfire_shadows : public wf::plugin_interface_t
     {
         if (is_view_shadow_enabled(view))
         {
-            if (!is_view_initialized(view)) {
+            auto shadow_data = view->get_data<view_shadow_data>(surface_data_name);
+            if (!shadow_data) {
+                // No shadow yet, create it now.
                 if (output->activate_plugin(grab_interface))
                 {
                     init_view(view);
@@ -107,6 +109,13 @@ class wayfire_shadows : public wf::plugin_interface_t
                     {
                         output->deactivate_plugin(grab_interface);
                     });
+                }
+            }
+            else {
+                // Shadow already exists, redraw if necessary,
+                // e.g. view was focused and glow is enabled.
+                if (shadow_data->shadow_ptr->needs_redraw()) {
+                    view->damage();
                 }
             }
         } else
@@ -121,7 +130,7 @@ class wayfire_shadows : public wf::plugin_interface_t
 
     void init_view( wayfire_view view )
     {
-        auto surf = std::make_unique<shadow_decoration_surface>( view );
+        auto surf = std::make_unique<wf::winshadows::shadow_decoration_surface>( view );
 
         auto view_data = std::make_unique<view_shadow_data>(surf.get());
 
