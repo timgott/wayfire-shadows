@@ -46,7 +46,7 @@
 		</option>
 		<option name="glow_color" type="color">
 			<_short>Focus glow color</_short>
-			<_long>Color of the glow of the focused window.</_long>
+			<_long>Color of the glow of the focused window. Try with a bright focus color for the window border decoration.</_long>
             <default>#97AFCD28</default>
 		</option>
 		<option name="glow_emissivity" type="double">
