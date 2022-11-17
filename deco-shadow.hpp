@@ -13,7 +13,7 @@ class decoration_shadow_t {
         decoration_shadow_t();
         ~decoration_shadow_t();
 
-        void render(const framebuffer_t& fb, wf::point_t origin, const geometry_t& scissor, const bool glow);
+        void render(const render_target_t& fb, wf::point_t origin, const geometry_t& scissor, const bool glow);
         void resize(const int width, const int height);
         wf::region_t calculate_region() const;
         wf::geometry_t get_geometry() const;
