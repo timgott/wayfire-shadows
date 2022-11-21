@@ -21,23 +21,22 @@ bool shadow_decoration_surface::is_mapped() const {
 }
 
 wf::point_t shadow_decoration_surface::get_offset() {
-
-    return wf::origin(surface_geometry);
+    return surface_offset_to_view;
 }
 
 wf::dimensions_t shadow_decoration_surface::get_size() const {
 
-    return wf::dimensions(surface_geometry);
+    return surface_dimensions;
 }
 
-void shadow_decoration_surface::simple_render( const wf::render_target_t& fb, int, int, const wf::region_t& damage ) {
-    wf::point_t window_origin = wf::origin(view->get_wm_geometry());
-    wf::region_t frame = this->shadow_region + window_origin;
-    frame &= damage;
+void shadow_decoration_surface::simple_render( const wf::render_target_t& fb, int x, int y, const wf::region_t& damage ) {
+    wf::point_t frame_origin = wf::point_t{x, y} - surface_offset_to_frame;
+    wf::region_t paint_region = this->shadow_region + frame_origin;
+    paint_region &= damage;
 
-    for (const auto& box : frame)
+    for (const auto& box : paint_region)
     {
-        shadow.render(fb, window_origin, wlr_box_from_pixman_box(box), view->activated);
+        shadow.render(fb, frame_origin, wlr_box_from_pixman_box(box), view->activated);
     }
     _was_activated = view->activated;
 }
@@ -55,12 +54,18 @@ bool shadow_decoration_surface::accepts_input( int32_t, int32_t )
 }
 
 void shadow_decoration_surface::update_geometry() {
-    wf::geometry_t view_geometry = view->get_wm_geometry();
-    shadow.resize(view_geometry.width, view_geometry.height);
+    wf::geometry_t frame_geometry = view->get_wm_geometry();
+    shadow.resize(frame_geometry.width, frame_geometry.height);
 
-    wf::point_t frame_offset = wf::origin(view->get_wm_geometry()) - wf::origin(view->get_output_geometry());
+    // Offset between view origin and frame top left corner
+    wf::point_t frame_offset = wf::origin(frame_geometry) - wf::origin(view->get_output_geometry());
 
-    surface_geometry = shadow.get_geometry() + frame_offset;
+    // compute size and offsets
+    wf::geometry_t shadow_geometry = shadow.get_geometry();
+    surface_dimensions = wf::dimensions(shadow_geometry);
+    surface_offset_to_frame = wf::origin(shadow_geometry);
+    surface_offset_to_view = surface_offset_to_frame + frame_offset;
+
     this->shadow_region = shadow.calculate_region();
 }
 

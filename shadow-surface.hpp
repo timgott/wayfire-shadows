@@ -18,7 +18,9 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     bool _mapped = true;
     int _was_activated = 1; // used to check whether redrawing on focus is necessary
 
-    wf::geometry_t surface_geometry;
+    wf::dimensions_t surface_dimensions;
+    wf::point_t surface_offset_to_view;
+    wf::point_t surface_offset_to_frame;
 
     wayfire_view view;
 
