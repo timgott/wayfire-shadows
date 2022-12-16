@@ -126,7 +126,7 @@ uniform vec2 glow_upper;
 vec2 invQrtIntegralPartial(vec2 y, float xmin, float xmax) {
   // Rectangle integral over 1/(x^2+y^2+1)^2
   // Computed using FriCAS:
-  // formatExpression(integrate(integrate(1/((x^2+y^2+1)^2), x=a..b, "noPole"), y))$Format1D
+  //   formatExpression(integrate(integrate(1/((x^2+y^2+1)^2), x=a..b, "noPole"), y))$Format1D
   float a = xmin;
   float b = xmax;
   return (y*sqrt(a*a+1.0)*sqrt(b*b+1.0)*sqrt(y*y+1.0)*atan((b*sqrt(y*y+1.0))/(y*y+1.0))+(
@@ -148,7 +148,7 @@ float orthoInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   return (integral.z - integral.x) * (integral.w - integral.y);
 }
 
-float edgeInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
+float distInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   vec4 offsets = vec4(lower - point, point - upper) / scale;
   float a = max(max(offsets.x, offsets.z), 0.0);
   float b = max(max(offsets.y, offsets.w), 0.0);
@@ -157,19 +157,47 @@ float edgeInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   return invsqr;//invsqr.x*invsqr.z * invsqr.y*invsqr.w;
 }
 
+vec4 barInvSqrFalloffIntegral(vec4 t, vec4 d) {
+  // FriCAS: integrate(1/(t^2+d^2+1), t)
+  vec4 rsqr = d*d+1.0;
+  vec4 r = sqrt(rsqr);
+  return atan(t * r / rsqr) / r - 0.0001;
+}
+
+vec4 barInvCubicFalloffIntegral(vec4 t, vec4 d) {
+  // FriCAS: integrate(1/(t^2+d^2+1)^(3/2), t)
+  vec4 rsqr = t*t+d*d+1.0;
+  vec4 r = sqrt(rsqr);
+  return -1.0/(t*r-rsqr);
+}
+
+float edgeInvSqrGlow(vec2 lower, vec2 upper, vec2 point, float scale) {
+  // distance to edge left, top, right, bottom
+  vec4 edgeDists = vec4(lower - point, upper - point) / scale;
+  vec4 integralLower = barInvSqrFalloffIntegral(edgeDists.tsts, edgeDists);
+  vec4 integralUpper = barInvSqrFalloffIntegral(edgeDists.qpqp, edgeDists);
+
+  float fadeDist = max(max(edgeDists.s, -edgeDists.p), max(edgeDists.t, -edgeDists.q));
+  float fade = max(1.0 - fadeDist/20.0, 0.0); // artificial term to limit range
+
+  vec4 integral = integralUpper - integralLower;
+  return max((integral.s + integral.t + integral.p + integral.q)- 0.01, 0.0);
+}
+
 vec3 toneMapGlow(vec3 x) {
     return 1.0 - exp(-x);
 }
 
 void main()
 {
-    float glow_value = 2.0 * boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
-    //float glow_value = edgeInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
+    //float glow_value = 2.0 * boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
+    float glow_value = 2.0*edgeInvSqrGlow(glow_lower, glow_upper, uvpos, glow_sigma);
+    //float glow_value = distInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
     //float glow_value = orthoInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
     //float glow_value = boxShadow(glow_lower, glow_upper, uvpos, glow_sigma);
     gl_FragColor =
-        color * circlularLightShadow(lower, upper, uvpos, sigma * 1.8) +
-        //glow_color * boxShadow(glow_lower, glow_upper, uvpos, glow_sigma);
+        color * boxShadow(lower, upper, uvpos, sigma) +
+        //color * circlularLightShadow(lower, upper, uvpos, sigma * 1.8) +
         glow_color * glow_value;
 }
 )";
