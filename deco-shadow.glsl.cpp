@@ -22,7 +22,8 @@ void main() {
 
 /* Base fragment shader definitions */
 
-const std::string box_shadow_fragment_header = 
+// All definitions are inserted in the shader, the shader compiler will remove unused ones
+const std::string fragment_header =
 R"(
 #version 100
 precision highp float;
@@ -30,7 +31,10 @@ varying vec2 uvpos;
 uniform vec2 lower;
 uniform vec2 upper;
 uniform vec4 color;
+
 uniform float sigma;
+
+/* Gaussian shadow */
 
 // Adapted from http://madebyevan.com/shaders/fast-rounded-rectangle-shadows/
 // License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/)
@@ -41,6 +45,16 @@ vec4 erf(vec4 x) {
   x *= x;
   return s - s / (x * x);
 }
+
+// Computes a gaussian convolution of a box from lower to upper
+float boxGaussian(vec2 lower, vec2 upper, vec2 point, float sigma) {
+  vec4 query = vec4(lower - point, upper - point);
+  vec4 integral = 0.5 + 0.5 * erf(query * (sqrt(0.5) / sigma));
+  return (integral.z - integral.x) * (integral.w - integral.y);
+}
+
+
+/* Circular shadow */
 
 // Antiderivative of sqrt(1-x^2)
 float circleIntegral(float x) {
@@ -87,58 +101,52 @@ float circleOverlap(vec2 lower, vec2 upper) {
   return (inner - outerLeft - outerRight) / M_PI;
 }
 
-float circlularLightShadow(vec2 lower, vec2 upper, vec2 point, float radius) {
+float circularLightShadow(vec2 lower, vec2 upper, vec2 point, float radius) {
   vec4 query = vec4(lower - point, upper - point) / radius;
-  return circleOverlap(query.st, query.pq);
+  return max(circleOverlap(query.st, query.pq), 0.0);
 }
 
-// Return the mask for the shadow of a box from lower to upper
-float boxShadow(vec2 lower, vec2 upper, vec2 point, float sigma) {
-  vec4 query = vec4(lower - point, upper - point);
-  vec4 integral = 0.5 + 0.5 * erf(query * (sqrt(0.5) / sigma));
-  return (integral.z - integral.x) * (integral.w - integral.y);
-}
-)";
 
+/* Glow */
 
-/* Rectangle shadow fragment shader */
-
-const std::string wf::winshadows::decoration_shadow_t::shadow_frag_shader =
-box_shadow_fragment_header + // include header and function definitions
-R"(
-void main()
-{
-    gl_FragColor = color * boxShadow(lower, upper, uvpos, sigma);
-}
-)";
-
-
-/* Rectangle shadow+glow fragment shader */
-
-const std::string wf::winshadows::decoration_shadow_t::shadow_glow_frag_shader =
-box_shadow_fragment_header + // include header and function definitions
-R"(
 uniform vec4 glow_color;
-uniform float glow_sigma;
+uniform float glow_spread;
 uniform vec2 glow_lower;
 uniform vec2 glow_upper;
 
-vec2 invQrtIntegralPartial(vec2 y, float xmin, float xmax) {
+uniform float glow_intensity;
+uniform float glow_threshold;
+
+/* Inverse quartic falloff */
+
+vec2 invQrtIntegralPartial(float xmin, float xmax, vec2 y, float z) {
   // Rectangle integral over 1/(x^2+y^2+1)^2
   // Computed using FriCAS:
-  //   formatExpression(integrate(integrate(1/((x^2+y^2+1)^2), x=a..b, "noPole"), y))$Format1D
+  //   formatExpression(integrate(integrate(1/((x^2+y^2+z^2)^2), x=a..b, "noPole"), y))$Format1D
+  // Then some rewriting to make it valid glsl and simplified a bit
+
   float a = xmin;
   float b = xmax;
-  return (y*sqrt(a*a+1.0)*sqrt(b*b+1.0)*sqrt(y*y+1.0)*atan((b*sqrt(y*y+1.0))/(y*y+1.0))+(
-    -y)*sqrt(a*a+1.0)*sqrt(b*b+1.0)*sqrt(y*y+1.0)*atan((a*sqrt(y*y+1.0))/(y*y+1.0))+(
-    b*y*y+b)*sqrt(a*a+1.0)*atan((y*sqrt(b*b+1.0))/(b*b+1.0))+((-a)*y*y-a)*sqrt(b*b+1.0)*atan((y*sqrt(a*a+1.0))/(a*a+1.0)))/((2.0*y*y+2.0)*sqrt(a*a+1.0)*sqrt(b*b+1.0));
+
+  float zsqr = z*z;
+  float s1 = zsqr+a*a;
+  float s2 = zsqr+b*b;
+  vec2 s3 = zsqr+y*y;
+  float t1 = sqrt(s1);
+  float t2 = sqrt(s2);
+  vec2 t3 = sqrt(s3);
+
+  return (y*t1*t2*t3*(atan((b*t3)/(s3))-atan((a*t3)/(s3)))+(zsqr+y*y)*(b*t1*atan((y*t2)/(s2))+(-a)*t2*atan((y*t1)/(s1))))/((2.0*zsqr*(1.0+y*y*zsqr))*t1*t2);
 }
 
 float boxInvQrtFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   vec4 query = vec4(lower - point, upper - point) / scale;
-  vec2 integralBounds = invQrtIntegralPartial(query.yw, query.x, query.z);
+  vec2 integralBounds = invQrtIntegralPartial(query.x, query.z, query.yw, 1.0);
   return (integralBounds.y - integralBounds.x);
 }
+
+
+/* Inverse square falloff, but only vertically and horizontally */
 
 float orthoInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   // f = (x^2+1)^(-1)
@@ -147,6 +155,9 @@ float orthoInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   vec4 integral = atan(query);
   return (integral.z - integral.x) * (integral.w - integral.y);
 }
+
+
+/* Inverse square falloff, but only 1d based on distance to window edge */
 
 float distInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   vec4 offsets = vec4(lower - point, point - upper) / scale;
@@ -157,47 +168,75 @@ float distInvSqrFalloff(vec2 lower, vec2 upper, vec2 point, float scale) {
   return invsqr;//invsqr.x*invsqr.z * invsqr.y*invsqr.w;
 }
 
-vec4 barInvSqrFalloffIntegral(vec4 t, vec4 d) {
-  // FriCAS: integrate(1/(t^2+d^2+1), t)
-  vec4 rsqr = d*d+1.0;
+
+/* Inverse square falloff integral over window edges (neon) */
+
+vec4 barInvSqrFalloffIntegral(vec4 t, vec4 d, float z) {
+  // FriCAS: integrate(1/(t^2+d^2+z^2), t)
+  vec4 rsqr = d*d+z*z;
   vec4 r = sqrt(rsqr);
-  return atan(t * r / rsqr) / r - 0.0001;
+  return atan(t * r / rsqr) / r;
 }
 
-vec4 barInvCubicFalloffIntegral(vec4 t, vec4 d) {
-  // FriCAS: integrate(1/(t^2+d^2+1)^(3/2), t)
-  vec4 rsqr = t*t+d*d+1.0;
+vec4 barInvCubicFalloffIntegral(vec4 t, vec4 d, float z) {
+  // FriCAS: integrate(1/(t^2+d^2+z^2)^(3/2), t)
+  vec4 rsqr = t*t+d*d+z*z;
   vec4 r = sqrt(rsqr);
   return -1.0/(t*r-rsqr);
 }
 
 float edgeInvSqrGlow(vec2 lower, vec2 upper, vec2 point, float scale) {
   // distance to edge left, top, right, bottom
-  vec4 edgeDists = vec4(lower - point, upper - point) / scale;
-  vec4 integralLower = barInvSqrFalloffIntegral(edgeDists.tsts, edgeDists);
-  vec4 integralUpper = barInvSqrFalloffIntegral(edgeDists.qpqp, edgeDists);
-
-  float fadeDist = max(max(edgeDists.s, -edgeDists.p), max(edgeDists.t, -edgeDists.q));
-  float fade = max(1.0 - fadeDist/20.0, 0.0); // artificial term to limit range
+  vec4 edgeDists = vec4(lower - point, upper - point);
+  vec4 integralLower = barInvSqrFalloffIntegral(edgeDists.tsts, edgeDists, scale);
+  vec4 integralUpper = barInvSqrFalloffIntegral(edgeDists.qpqp, edgeDists, scale);
 
   vec4 integral = integralUpper - integralLower;
-  return max((integral.s + integral.t + integral.p + integral.q)- 0.01, 0.0);
+  return (integral.s + integral.t + integral.p + integral.q);
 }
 
-vec3 toneMapGlow(vec3 x) {
-    return 1.0 - exp(-x);
+float lightThreshold(float x, float minThreshold) {
+    return max(x - minThreshold, 0.0);
 }
 
+// TODO: make configurable?
+//#define CIRCULAR_SHADOW
+)";
+
+/* Rectangle shadow+glow fragment shader */
+
+
+const std::string wf::winshadows::decoration_shadow_t::shadow_glow_frag_shader =
+fragment_header +
+R"(
 void main()
 {
-    //float glow_value = 2.0 * boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
-    float glow_value = 2.0*edgeInvSqrGlow(glow_lower, glow_upper, uvpos, glow_sigma);
-    //float glow_value = distInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
-    //float glow_value = orthoInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_sigma);
-    //float glow_value = boxShadow(glow_lower, glow_upper, uvpos, glow_sigma);
+    float glow_value = edgeInvSqrGlow(glow_lower, glow_upper, uvpos, glow_spread), glow_neon_threshold;
+    //float glow_value = boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_spread)
+    //float glow_value = boxGaussian(glow_lower, glow_upper, uvpos, glow_spread)
+    //float glow_value = distInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_spread);
+    //float glow_value = orthoInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_spread);
     gl_FragColor =
-        color * boxShadow(lower, upper, uvpos, sigma) +
-        //color * circlularLightShadow(lower, upper, uvpos, sigma * 1.8) +
-        glow_color * glow_value;
+#ifdef CIRCULAR_SHADOW
+        color * circularLightShadow(lower, upper, uvpos, sigma * 1.8) +
+#else
+        color * boxGaussian(lower, upper, uvpos, sigma) +
+#endif
+        glow_intensity * glow_color * lightThreshold(glow_value, glow_threshold);
+}
+)";
+
+/* Rectangle shadow fragment shader */
+
+const std::string wf::winshadows::decoration_shadow_t::shadow_frag_shader =
+fragment_header + // include header and function definitions
+R"(
+void main()
+{
+#ifdef CIRCULAR_SHADOW
+    gl_FragColor = color * circularLightShadow(lower, upper, uvpos, sigma * 1.8);
+#else
+    gl_FragColor = color * boxGaussian(lower, upper, uvpos, sigma);
+#endif
 }
 )";
