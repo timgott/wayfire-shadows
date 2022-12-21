@@ -35,8 +35,11 @@ class decoration_shadow_t {
         wf::option_wrapper_t<int> horizontal_offset { "winshadows/horizontal_offset" };
 
         wf::option_wrapper_t<wf::color_t> glow_color_option { "winshadows/glow_color" };
-        wf::option_wrapper_t<int> glow_radius_option { "winshadows/glow_radius" };
         wf::option_wrapper_t<double> glow_emissivity_option { "winshadows/glow_emissivity" };
+        wf::option_wrapper_t<double> glow_spread_option { "winshadows/glow_spread" };
+        wf::option_wrapper_t<double> glow_intensity_option { "winshadows/glow_intensity" };
+        wf::option_wrapper_t<double> glow_threshold_option { "winshadows/glow_threshold" };
+        wf::option_wrapper_t<int> glow_radius_limit_option { "winshadows/glow_radius_limit" };
 
         static const std::string shadow_vert_shader;
         static const std::string shadow_frag_shader;
