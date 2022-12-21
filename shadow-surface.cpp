@@ -29,7 +29,7 @@ wf::dimensions_t shadow_decoration_surface::get_size() const {
     return surface_dimensions;
 }
 
-void shadow_decoration_surface::simple_render( const wf::render_target_t& fb, int x, int y, const wf::region_t& damage ) {
+void shadow_decoration_surface::simple_render( const wf::framebuffer_t& fb, int x, int y, const wf::region_t& damage ) {
     wf::point_t frame_origin = wf::point_t{x, y} - surface_offset_to_frame;
     wf::region_t paint_region = this->shadow_region + frame_origin;
     paint_region &= damage;
