@@ -18,7 +18,9 @@ class shadow_decoration_surface : public wf::surface_interface_t {
     bool _mapped = true;
     int _was_activated = 1; // used to check whether redrawing on focus is necessary
 
-    wf::geometry_t surface_geometry;
+    wf::dimensions_t surface_dimensions;
+    wf::point_t surface_offset_to_view;
+    wf::point_t surface_offset_to_frame;
 
     wayfire_view view;
 
@@ -50,7 +52,7 @@ class shadow_decoration_surface : public wf::surface_interface_t {
 
     virtual wf::dimensions_t get_size() const final;
 
-    virtual void simple_render( const wf::framebuffer_t& fb, int x, int y, const wf::region_t& damage ) override;
+    virtual void simple_render( const wf::render_target_t& fb, int x, int y, const wf::region_t& damage ) override;
 
     bool accepts_input( int32_t sx, int32_t sy ) override;
 

@@ -14,6 +14,7 @@
 			<_long>Enables window shadows on windows that do not request server side decoration.</_long>
 			<default>false</default>
 		</option>
+
 		<option name="shadow_color" type="color">
 			<_short>Shadow color</_short>
 			<_long>Color of the window shadow.</_long>
@@ -39,19 +40,68 @@
 			<_long>Number of pixels to shift the shadow by in horizontal direction.</_long>
 			<default>0</default>
 		</option>
-		<option name="glow_radius" type="int">
-			<_short>Focus glow radius</_short>
-			<_long>Sets the glow radius around the focused window in pixels. 0 to disable.</_long>
+		<option name="glow_intensity" type="double">
+			<_short>Focus edge glow intensity</_short>
+			<_long>Intensity of light emitted by the edges of the window (multiplies alpha of glow color). 0 to disable glow.</_long>
 			<default>0</default>
+            <min>0</min>
+            <precision>0.1</precision>
 		</option>
 		<option name="glow_color" type="color">
 			<_short>Focus glow color</_short>
-			<_long>Color of the glow of the focused window. Try with a bright focus color for the window border decoration.</_long>
-            <default>#97AFCD28</default>
+			<_long>Color of the glow of the focused window. Combine with a bright focus color for the window border decoration.</_long>
+			<default>#97AFCD28</default>
+		</option>
+		<option name="glow_radius_limit" type="int">
+			<_short>Focus glow distance limit</_short>
+			<_long>Size of area around window where glow is rendered, 0 to disable glow. Set this as small as possible, but without visibly clipping the glow effect into a rectangle. Depends on intensity, elevation and threshold (could be computed automatically).</_long>
+			<default>50</default>
+		</option>
+		<option name="glow_threshold" type="double">
+			<_short>Focus glow light threshold</_short>
+			<_long>Hide light below this threshold to avoid light spreading out too far. 0 is most realistic light spread, but increase slightly if the is lit area is too large.</_long>
+			<default>0.01</default>
+            <precision>0.005</precision>
+            <max>0.2</max>
+		</option>
+		<option name="glow_spread" type="double">
+			<_short>Focus glow spread</_short>
+			<_long>Corresponds to elevation of the window relative to the background. Higher elevation means that the light reaches a larger area more evenly but less intense.</_long>
+			<default>5</default>
+		</option>
+		<option name="shadow_type" type="string">
+			<_short>Shadow type</_short>
+			<_long>Changes the way the shadow falls off around the edges of the window. Different light sources cast different types of shadows.</_long>
+			<default>gaussian</default>
+			<desc>
+				<value>gaussian</value>
+				<_name>Gaussian</_name>
+			</desc>
+			<desc>
+				<value>circular</value>
+				<_name>Circular</_name>
+			</desc>
+		</option>
+		<option name="glow_type" type="string">
+			<_short>Focus glow light type</_short>
+			<_long>Changes the way emitted light falls off around the edges of the window. The types model different lighting situations.</_long>
+			<default>neon</default>
+			<desc>
+				<value>neon</value>
+				<_name>Neon (edges shine on background)</_name>
+			</desc>
+			<desc>
+				<value>gaussian</value>
+				<_name>Gaussian (back surface emits scatter light)</_name>
+			</desc>
+			<desc>
+				<value>backlight</value>
+				<_name>Backlight (back surface shines on background)</_name>
+			</desc>
 		</option>
 		<option name="glow_emissivity" type="double">
 			<_short>Glow emissivity</_short>
-			<_long>Controls the blending of the glow, 0 is normal blending, 1 is additive. Set to 0 for shadows and between 0 and 1 for glow effects.</_long>
+			<_long>Controls the blending of the focus glow, 0 is normal blending, 1 is additive. Set to 0 for shadows and between 0 and 1 for glow effects.</_long>
 			<default>1.0</default>
 			<min>0.0</min>
 			<max>1.0</max>
