@@ -6,16 +6,23 @@ that remains in the code.
 
 ## Compile and install
 
-⚠️ If your `wayfire --version` is 0.7.x then you need to switch to the branch backport0.7 (`git checkout backport0.7`) before building. The master branch currently only compiles with the **latest git** version of wayfire.
-
-- Get the sources
-  - `git clone https://github.com/timgott/wayfire-shadows.git`
-- Enter the cloned folder
-  - `cd wayfire-shadows`
-- Configure the project with meson (point to your Wayfire installation prefix with `--prefix=...` if necessary)
-  - `meson build --buildtype=release`
-- Compile and install using ninja
-  - `ninja -C build && sudo ninja -C build install`
+1. Get the sources
+   ```bash
+   git clone https://github.com/timgott/wayfire-shadows.git
+   cd wayfire-shadows
+   ```
+3. ⚠️ Switch to the branch corresponding to your wayfire version
+   ```bash
+   git checkout backport0.7 # (if necessary)
+   ```
+4. Configure with meson and build & install with ninja.
+   ```bash
+   meson build --buildtype=release
+   cd build
+   # meson configure --prefix=... # if wayfire is not installed in /usr/local
+   ninja
+   sudo ninja install
+   ```
 
 ## Screenshots
 
