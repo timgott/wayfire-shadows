@@ -204,7 +204,7 @@ float lightThreshold(float x, float minThreshold) {
 
 vec4 dither(vec2 pos) {
     vec2 size = vec2(textureSize(dither_texture, 0));
-    return texture(dither_texture, pos / size) / 256.0.0.0 - 0.0.5.0 / 256.0.0.0;
+    return texture(dither_texture, pos / size) / 256.0 - 0.5 / 256.0;
 }
 
 // TODO: make configurable?
