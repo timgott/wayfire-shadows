@@ -1,9 +1,9 @@
-#include "deco-shadow.hpp"
 #include <random>
+#include "renderer.hpp"
 
-int number = 128;
+namespace winshadows {
 
-wf::winshadows::decoration_shadow_t::decoration_shadow_t() {
+shadow_renderer_t::shadow_renderer_t() {
     OpenGL::render_begin();
     shadow_program.set_simple(
         OpenGL::compile_program(shadow_vert_shader, shadow_frag_shader)
@@ -17,7 +17,7 @@ wf::winshadows::decoration_shadow_t::decoration_shadow_t() {
     OpenGL::render_end();
 }
 
-void wf::winshadows::decoration_shadow_t::generate_dither_texture() {
+void shadow_renderer_t::generate_dither_texture() {
     const int size = 32;
     GLuint data[size*size];
 
@@ -37,7 +37,7 @@ void wf::winshadows::decoration_shadow_t::generate_dither_texture() {
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
 
-wf::winshadows::decoration_shadow_t::~decoration_shadow_t() {
+shadow_renderer_t::~shadow_renderer_t() {
     OpenGL::render_begin();
     shadow_program.free_resources();
     shadow_glow_program.free_resources();
@@ -47,7 +47,7 @@ wf::winshadows::decoration_shadow_t::~decoration_shadow_t() {
     OpenGL::render_end();
 }
 
-void wf::winshadows::decoration_shadow_t::render(const render_target_t& fb, wf::point_t window_origin, const geometry_t& scissor, const bool glow) {
+void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window_origin, const wf::geometry_t& scissor, const bool glow) {
     float radius = shadow_radius_option;
 
     wf::color_t color = shadow_color_option;
@@ -135,7 +135,7 @@ void wf::winshadows::decoration_shadow_t::render(const render_target_t& fb, wf::
     OpenGL::render_end();
 }
 
-wf::region_t wf::winshadows::decoration_shadow_t::calculate_region() const {
+wf::region_t shadow_renderer_t::calculate_region() const {
     // TODO: geometry and region depending on whether glow is active or not
     wf::region_t region = wf::region_t(shadow_geometry) | wf::region_t(glow_geometry);
 
@@ -146,11 +146,11 @@ wf::region_t wf::winshadows::decoration_shadow_t::calculate_region() const {
     return region;
 }
 
-wf::geometry_t wf::winshadows::decoration_shadow_t::get_geometry() const {
+wf::geometry_t shadow_renderer_t::get_geometry() const {
     return outer_geometry;
 }
 
-void wf::winshadows::decoration_shadow_t::resize(const int window_width, const int window_height) {
+void shadow_renderer_t::resize(const int window_width, const int window_height) {
     window_geometry = {
         0,
         0,
@@ -163,7 +163,7 @@ void wf::winshadows::decoration_shadow_t::resize(const int window_width, const i
         window_width + shadow_radius_option * 2, window_height + shadow_radius_option * 2
     };
 
-    int glow_radius = glow_radius_limit_option;
+    int glow_radius = is_glow_enabled() ? glow_radius_limit_option : 0;
     glow_geometry = {
         -glow_radius, -glow_radius,
         window_width + glow_radius * 2, window_height + glow_radius * 2
@@ -181,6 +181,8 @@ void wf::winshadows::decoration_shadow_t::resize(const int window_width, const i
     };
 }
 
-bool wf::winshadows::decoration_shadow_t::is_glow_enabled() const {
+bool shadow_renderer_t::is_glow_enabled() const {
     return (glow_radius_limit_option > 0) && (glow_intensity_option > 0);
+}
+
 }

@@ -1,10 +1,10 @@
 // GLSL as cpp string constant (.glsl extension for syntax highlighting)
-#include "deco-shadow.hpp"
+#include "renderer.hpp"
 
 
 /* Vertex shader */
 
-const std::string wf::winshadows::decoration_shadow_t::shadow_vert_shader = 
+const std::string winshadows::shadow_renderer_t::shadow_vert_shader = 
 R"(
 #version 300 es
 
@@ -214,7 +214,7 @@ vec4 dither(vec2 pos) {
 /* Rectangle shadow+glow fragment shader */
 
 
-const std::string wf::winshadows::decoration_shadow_t::shadow_glow_frag_shader =
+const std::string winshadows::shadow_renderer_t::shadow_glow_frag_shader =
 fragment_header +
 R"(
 void main()
@@ -238,7 +238,7 @@ void main()
 
 /* Rectangle shadow fragment shader */
 
-const std::string wf::winshadows::decoration_shadow_t::shadow_frag_shader =
+const std::string winshadows::shadow_renderer_t::shadow_frag_shader =
 fragment_header + // include header and function definitions
 R"(
 void main()

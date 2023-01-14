@@ -23,10 +23,10 @@ add_project_link_arguments(['-rdynamic'], language:'cpp')
 
 shadows = shared_module(
     'winshadows', [
-        'shadows.cpp',
-        'shadow-surface.cpp',
-        'deco-shadow.cpp',
-        'deco-shadow.glsl.cpp',
+        'winshadows.cpp',
+        'node.cpp',
+        'renderer.cpp',
+        'shaders.glsl.cpp',
     ],
 
     dependencies: [

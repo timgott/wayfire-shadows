@@ -3,17 +3,17 @@
 #include <wayfire/opengl.hpp>
 #include <wayfire/region.hpp>
 
-namespace wf::winshadows {
+namespace winshadows {
 /**
  * A  class that can render shadows.
  * It manages the shader and calculates the necessary padding.
  */
-class decoration_shadow_t {
+class shadow_renderer_t {
     public:
-        decoration_shadow_t();
-        ~decoration_shadow_t();
+        shadow_renderer_t();
+        ~shadow_renderer_t();
 
-        void render(const render_target_t& fb, wf::point_t origin, const geometry_t& scissor, const bool glow);
+        void render(const wf::render_target_t& fb, wf::point_t origin, const wf::geometry_t& scissor, const bool glow);
         void resize(const int width, const int height);
         wf::region_t calculate_region() const;
         wf::geometry_t get_geometry() const;

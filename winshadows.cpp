@@ -5,13 +5,14 @@
 #include <wayfire/workspace-manager.hpp>
 #include <wayfire/output.hpp>
 #include <wayfire/signal-definitions.hpp>
+#include <wayfire/scene-operations.hpp>
 
-#include "shadow-surface.hpp"
+#include "node.hpp"
 
 struct view_shadow_data : wf::custom_data_t {
-    view_shadow_data(nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr) : shadow_ptr(shadow_ptr) {};
+    view_shadow_data(std::shared_ptr<winshadows::shadow_node_t> shadow_ptr) : shadow_ptr(shadow_ptr) {};
 
-    nonstd::observer_ptr<wf::winshadows::shadow_decoration_surface> shadow_ptr;
+    std::shared_ptr<winshadows::shadow_node_t> shadow_ptr;
 };
 
 namespace wayfire_shadows_globals {
@@ -130,16 +131,15 @@ class wayfire_shadows : public wf::plugin_interface_t
 
     void init_view( wayfire_view view )
     {
-        auto surf = std::make_unique<wf::winshadows::shadow_decoration_surface>( view );
+        auto surf = std::make_shared<winshadows::shadow_node_t>( view );
 
-        auto view_data = std::make_unique<view_shadow_data>(surf.get());
+        auto view_data = std::make_unique<view_shadow_data>(surf);
 
         view->store_data( 
             std::move(view_data), 
             surface_data_name
         );
 
-        view->add_subsurface(std::move( surf ), true );
         view->damage();
     }
 
@@ -148,7 +148,7 @@ class wayfire_shadows : public wf::plugin_interface_t
         auto view_data = view->get_data<view_shadow_data>(surface_data_name);
         if (view_data != nullptr) {
             view->damage();
-            view->remove_subsurface(view_data->shadow_ptr);
+            wf::scene::add_back(view->get_surface_root_node(), view_data->shadow_ptr);
             view->erase_data(surface_data_name);
         }
     }
