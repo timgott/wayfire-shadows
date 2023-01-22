@@ -1,12 +1,7 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <linux/input-event-codes.h>
-
+#include <wayfire/geometry.hpp>
 #include <wayfire/scene.hpp>
-#include <wayfire/opengl.hpp>
 #include <wayfire/core.hpp>
 #include <wayfire/signal-definitions.hpp>
 #include "renderer.hpp"
@@ -17,9 +12,11 @@ class shadow_node_t : public wf::scene::node_t {
   private:
     int _was_activated = 1; // used to check whether redrawing on focus is necessary
 
-    wf::dimensions_t surface_dimensions;
-    wf::point_t surface_offset_to_view;
-    wf::point_t surface_offset_to_frame;
+    // geometry of the node relative to the view origin
+    wf::geometry_t geometry;
+
+    // offset between the node origin and the frame origin (i.e. top-left borders)
+    wf::point_t frame_offset;
 
     wayfire_view view;
 
