@@ -27,9 +27,7 @@ class shadow_node_t : public wf::scene::node_t {
     wf::region_t shadow_region;
     shadow_renderer_t shadow;
 
-    wf::signal_connection_t on_geometry_changed = [&] (auto) {
-        update_geometry();
-    };
+    wf::signal::connection_t<wf::view_geometry_changed_signal> on_geometry_changed;
 
     void update_geometry();
 

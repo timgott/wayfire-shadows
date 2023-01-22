@@ -4,13 +4,15 @@ namespace winshadows {
 
 shadow_node_t::shadow_node_t( wayfire_view view ): wf::scene::node_t(false) {
     this->view = view;
-    view->connect_signal("geometry-changed", &on_geometry_changed);
-
+    on_geometry_changed.set_callback([this] (auto) {
+        update_geometry();
+    });
+    view->connect(&on_geometry_changed);
     update_geometry();
 }
 
 shadow_node_t::~shadow_node_t() {
-    view->disconnect_signal(&on_geometry_changed);
+    view->disconnect(&on_geometry_changed);
 }
 
 wf::geometry_t shadow_node_t::get_bounding_box()  {
