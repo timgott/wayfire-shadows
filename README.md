@@ -1,21 +1,23 @@
-# Window Shadows Plugin for Wayfire
+# winshadows
+
+### Window Shadows Plugin for Wayfire
 
 This is a plugin for wayfire that adds window shadows. The code was initially a
 fork of <https://gitlab.com/wayfireplugins/windecor> but only a small part of
 that remains in the code.
 
-## Compile and install
+## Install
 
 1. Get the sources
    ```bash
    git clone https://github.com/timgott/wayfire-shadows.git
    cd wayfire-shadows
    ```
-3. ⚠️ Switch to the branch corresponding to your wayfire version
+2. ⚠️ Switch to the backport0.7 branch if you use wayfire version 0.7 (last stable release)
    ```bash
    git checkout backport0.7 # (if necessary)
    ```
-4. Configure with meson and build & install with ninja.
+3. Configure with meson and build & install with ninja.
    ```bash
    meson build --buildtype=release
    cd build
@@ -23,6 +25,23 @@ that remains in the code.
    ninja
    sudo ninja install
    ```
+
+## Install with [wfplug](https://github.com/timgott/wfplug)
+
+As above, you have to change the branch on wayfire 0.7.
+
+```bash
+source ~/wfplug/activate  # edit path if necessary
+wfplug-goto-plugins
+git clone https://github.com/timgott/wayfire-shadows.git winshadows
+wfplug-build winshadows
+```
+
+Try a testconfig with
+
+```bash
+wfplug-test winshadows bluelight
+```
 
 ## Screenshots
 
