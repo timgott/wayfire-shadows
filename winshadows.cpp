@@ -7,7 +7,7 @@
 #include <wayfire/signal-definitions.hpp>
 #include <wayfire/signal-provider.hpp>
 #include <wayfire/view.hpp>
-#include <wayfire/workspace-manager.hpp>
+#include <wayfire/workspace-set.hpp>
 
 #include "node.hpp"
 
@@ -64,7 +64,7 @@ public:
         output->connect(&on_focus_changed);
         output->connect(&on_view_unmapped);
 
-        for (auto &view : output->workspace->get_views_in_layer(wf::ALL_LAYERS)) {
+        for (auto &view : output->wset()->get_views()) {
             update_view_decoration(view);
         }
     }
@@ -144,7 +144,7 @@ public:
         output->disconnect(&on_focus_changed);
         output->disconnect(&on_view_unmapped);
 
-        for (auto &view : output->workspace->get_views_in_layer(wf::ALL_LAYERS)) {
+        for (auto &view : output->wset()->get_views()) {
             deinit_view(view);
         }
     }
