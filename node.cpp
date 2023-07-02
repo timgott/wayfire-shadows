@@ -2,7 +2,7 @@
 
 namespace winshadows {
 
-shadow_node_t::shadow_node_t( wayfire_view view ): wf::scene::node_t(false) {
+shadow_node_t::shadow_node_t( wayfire_toplevel_view view ): wf::scene::node_t(false) {
     this->view = view;
     on_geometry_changed.set_callback([this] (auto) {
         update_geometry();
@@ -50,11 +50,15 @@ bool shadow_node_t::needs_redraw() {
 }
 
 void shadow_node_t::update_geometry() {
-    wf::geometry_t frame_geometry = view->get_wm_geometry();
+    wf::geometry_t frame_geometry = view->get_geometry();
     shadow.resize(frame_geometry.width, frame_geometry.height);
 
+    // TODO: Check whether this can be done in a nicer/easier way
+    wf::pointf_t view_origin_f = view->get_surface_root_node()->to_global({0, 0}); 
+    wf::point_t view_origin {(int)view_origin_f.x, (int)view_origin_f.y};
+
     // Offset between view origin and frame top left corner
-    frame_offset = wf::origin(frame_geometry) - wf::origin(view->get_output_geometry());
+    frame_offset = wf::origin(frame_geometry) - view_origin;
 
     // Shadow geometry is relative to the top left corner of the frame (not the view)
     wf::geometry_t shadow_geometry = shadow.get_geometry();

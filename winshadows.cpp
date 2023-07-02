@@ -76,11 +76,11 @@ public:
      * @param view The view to match
      * @return Whether the view should get a shadow.
      */
-    bool is_view_shadow_enabled(wayfire_view view) {
+    bool is_view_shadow_enabled(wayfire_toplevel_view view) {
         return enabled_views.matches(view) && (is_view_decorated(view) || include_undecorated_views);
     }
 
-    bool is_view_decorated(wayfire_view view) {
+    bool is_view_decorated(wayfire_toplevel_view view) {
         return view->should_be_decorated();
     }
 
@@ -90,25 +90,28 @@ public:
 
     wf::wl_idle_call idle_deactivate;
     void update_view_decoration(wayfire_view view) {
-        if (is_view_shadow_enabled(view)) {
-            auto shadow_data = view->get_data<view_shadow_data>(surface_data_name);
-            if (!shadow_data) {
-                // No shadow yet, create it now.
-                init_view(view);
+        auto toplevel = wf::toplevel_cast(view);
+        if (toplevel) {
+            if (is_view_shadow_enabled(toplevel)) {
+                auto shadow_data = view->get_data<view_shadow_data>(surface_data_name);
+                if (!shadow_data) {
+                    // No shadow yet, create it now.
+                    init_view(toplevel);
+                } else {
+                    // in some situations the shadow node might have been removed due to unmap, but the view is reused (including the custom data)
+                    auto shadow_root = get_shadow_root_node(view);
+                    if (shadow_data->shadow_ptr->parent() != shadow_root.get()) {
+                            wf::scene::add_back(shadow_root, shadow_data->shadow_ptr);
+                    }
+                    // Shadow already exists, redraw if necessary,
+                    // e.g. view was focused and glow is enabled.
+                    if (shadow_data->shadow_ptr->needs_redraw()) {
+                        view->damage();
+                    }
+                }
             } else {
-                // in some situations the shadow node might have been removed due to unmap, but the view is reused (including the custom data)
-                auto shadow_root = get_shadow_root_node(view);
-                if (shadow_data->shadow_ptr->parent() != shadow_root.get()) {
-                        wf::scene::add_back(shadow_root, shadow_data->shadow_ptr);
-                }
-                // Shadow already exists, redraw if necessary,
-                // e.g. view was focused and glow is enabled.
-                if (shadow_data->shadow_ptr->needs_redraw()) {
-                    view->damage();
-                }
+                deinit_view(view);
             }
-        } else {
-            deinit_view(view);
         }
     }
 
@@ -116,7 +119,7 @@ public:
         return view->has_data(surface_data_name);
     }
 
-    void init_view(wayfire_view view) {
+    void init_view(wayfire_toplevel_view view) {
         // create the shadow node and add it to the view
         auto node = std::make_shared<winshadows::shadow_node_t>(view);
         wf::scene::add_back(get_shadow_root_node(view), node);
