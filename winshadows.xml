@@ -65,7 +65,7 @@
 			<option name="glow_spread" type="double">
 				<_short>Glow spread</_short>
 				<_long>Corresponds to elevation of the window relative to the background. Higher elevation means that the light reaches a larger area more evenly but less intense.</_long>
-				<default>5</default>
+				<default>10</default>
 			</option>
 			<subgroup>
 				<_short>Advanced</_short>
