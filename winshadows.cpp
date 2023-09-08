@@ -1,7 +1,7 @@
+#include <wayfire/core.hpp>
 #include <wayfire/matcher.hpp>
 #include <wayfire/object.hpp>
 #include <wayfire/output.hpp>
-#include <wayfire/per-output-plugin.hpp>
 #include <wayfire/plugin.hpp>
 #include <wayfire/scene-operations.hpp>
 #include <wayfire/signal-definitions.hpp>
@@ -17,55 +17,40 @@ struct view_shadow_data : wf::custom_data_t {
     std::shared_ptr<winshadows::shadow_node_t> shadow_ptr;
 };
 
-namespace wayfire_shadows_globals {
-    // Global because focus has to be tracked across outputs, but there is an instance of the plugin per output
-    wayfire_view last_focused_view = nullptr;
-}
-
-class wayfire_shadows : public wf::per_output_plugin_instance_t {
+class wayfire_shadows : public wf::plugin_interface_t {
     const std::string surface_data_name = "shadow_surface";
 
     wf::view_matcher_t enabled_views{"winshadows/enabled_views"};
     wf::option_wrapper_t<bool> include_undecorated_views{"winshadows/include_undecorated_views"};
 
+    // update new views
     wf::signal::connection_t<wf::view_mapped_signal> on_view_mapped =
         [=](auto *data) { update_view_decoration(data->view); };
+    // update when view enables or disables server side decoration
     wf::signal::connection_t<wf::view_decoration_state_updated_signal> on_view_updated =
         [=](auto *data) { update_view_decoration(data->view); };
+    // update on tile state change, such that it is possible to exclude tiled windows
     wf::signal::connection_t<wf::view_tiled_signal> on_view_tiled =
         [=](auto *data) { update_view_decoration(data->view); };
 
-    wf::signal::connection_t<wf::focus_view_signal> on_focus_changed =
-        [=](wf::focus_view_signal *data) {
-            wayfire_view focused_view = data->view;
-            wayfire_view last_focused = wayfire_shadows_globals::last_focused_view;
-            if (last_focused != nullptr) {
-                update_view_decoration(last_focused);
-            }
-            if (focused_view != nullptr) {
-                update_view_decoration(focused_view);
-            }
-            wayfire_shadows_globals::last_focused_view = focused_view;
-        };
-
-    wf::signal::connection_t<wf::view_unmapped_signal> on_view_unmapped =
-        [=](auto *data) {
-            wayfire_view view = data->view;
-            if (view == wayfire_shadows_globals::last_focused_view) {
-                wayfire_shadows_globals::last_focused_view = nullptr;
-            }
-        };
-
 public:
     void init() override {
-        output->connect(&on_view_mapped);
-        output->connect(&on_view_updated);
-        output->connect(&on_view_tiled);
-        output->connect(&on_focus_changed);
-        output->connect(&on_view_unmapped);
+        wf::get_core().connect(&on_view_mapped);
+        wf::get_core().connect(&on_view_updated);
+        wf::get_core().connect(&on_view_tiled);
 
-        for (auto &view : output->wset()->get_views()) {
+        for (auto &view : wf::get_core().get_all_views()) {
             update_view_decoration(view);
+        }
+    }
+
+    void fini() override {
+        wf::get_core().disconnect(&on_view_mapped);
+        wf::get_core().disconnect(&on_view_updated);
+        wf::get_core().disconnect(&on_view_tiled);
+
+        for (auto &view : wf::get_core().get_all_views()) {
+            deinit_view(view);
         }
     }
 
@@ -101,12 +86,7 @@ public:
                     // in some situations the shadow node might have been removed due to unmap, but the view is reused (including the custom data)
                     auto shadow_root = get_shadow_root_node(view);
                     if (shadow_data->shadow_ptr->parent() != shadow_root.get()) {
-                            wf::scene::add_back(shadow_root, shadow_data->shadow_ptr);
-                    }
-                    // Shadow already exists, redraw if necessary,
-                    // e.g. view was focused and glow is enabled.
-                    if (shadow_data->shadow_ptr->needs_redraw()) {
-                        view->damage();
+                        wf::scene::add_back(shadow_root, shadow_data->shadow_ptr);
                     }
                 }
             } else {
@@ -139,18 +119,6 @@ public:
             view->erase_data(surface_data_name);
         }
     }
-
-    void fini() override {
-        output->disconnect(&on_view_mapped);
-        output->disconnect(&on_view_updated);
-        output->disconnect(&on_view_tiled);
-        output->disconnect(&on_focus_changed);
-        output->disconnect(&on_view_unmapped);
-
-        for (auto &view : output->wset()->get_views()) {
-            deinit_view(view);
-        }
-    }
 };
 
-DECLARE_WAYFIRE_PLUGIN(wf::per_output_plugin_t<wayfire_shadows>);
+DECLARE_WAYFIRE_PLUGIN(wayfire_shadows);

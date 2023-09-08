@@ -7,7 +7,11 @@ shadow_node_t::shadow_node_t( wayfire_toplevel_view view ): wf::scene::node_t(fa
     on_geometry_changed.set_callback([this] (auto) {
         update_geometry();
     });
+    on_activated_changed.set_callback([this] (auto) {
+        this->view->damage();
+    });
     view->connect(&on_geometry_changed);
+    view->connect(&on_activated_changed);
     update_geometry();
 }
 
@@ -40,13 +44,6 @@ void shadow_node_t::gen_render_instances(std::vector<wf::scene::render_instance_
     };
 
     instances.push_back(std::make_unique<shadow_render_instance_t>(this, push_damage, output));
-}
-
-bool shadow_node_t::needs_redraw() {
-    if (shadow.is_glow_enabled()) {
-        return view->activated != _was_activated;
-    }
-    return false;
 }
 
 void shadow_node_t::update_geometry() {

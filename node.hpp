@@ -26,6 +26,7 @@ class shadow_node_t : public wf::scene::node_t {
     shadow_renderer_t shadow;
 
     wf::signal::connection_t<wf::view_geometry_changed_signal> on_geometry_changed;
+    wf::signal::connection_t<wf::view_activated_state_signal> on_activated_changed;
 
     void update_geometry();
 
@@ -37,8 +38,6 @@ class shadow_node_t : public wf::scene::node_t {
     void gen_render_instances(std::vector<wf::scene::render_instance_uptr> &instances, wf::scene::damage_callback push_damage, wf::output_t *output = nullptr) override;
 
     wf::geometry_t get_bounding_box() override;
-
-    bool needs_redraw();
 
 };
 
