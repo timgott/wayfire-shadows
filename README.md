@@ -6,6 +6,32 @@ This is a plugin for wayfire that adds window shadows. The code was initially a
 fork of <https://gitlab.com/wayfireplugins/windecor> but only a small part of
 that remains in the code.
 
+## Screenshots
+
+By default, the plugin will add fast and nice shadows around windows that use server side decorations. Additionally there is an option to make the focused window glow.
+
+![image](https://github.com/timgott/wayfire-shadows/assets/18331942/94d27159-573c-4613-8bf6-4527502539f5)
+
+<details>
+<summary>Config used in screenshot</summary>
+
+```ini
+[decoration]
+active_color = \#7A98BA76
+border_size = 4
+inactive_color = \#20201838
+title_height = 0
+
+[winshadows]
+glow_enabled = true
+shadow_radius = 50
+vertical_offset = 10
+horizontal_offset = 5
+# remaining values are default
+
+```
+</details>
+
 ## Install
 
 1. Get the sources
@@ -31,9 +57,14 @@ that remains in the code.
 As above, you have to change the branch on wayfire 0.7.
 
 ```bash
+# enable wfplug
 source ~/wfplug/activate  # edit path if necessary
+
+# get plugin
 wfplug-goto-plugins
 git clone https://github.com/timgott/wayfire-shadows.git winshadows
+
+# build and install to wfplug
 wfplug-build winshadows
 ```
 
@@ -43,28 +74,3 @@ Try a testconfig with
 wfplug-test winshadows bluelight
 ```
 
-## Screenshots
-
-By default, the plugin will add fast and nice shadows around windows that use server side decorations.
-![image](https://raw.github.com/timgott/wayfire-shadows/screenshots/screenshots/screenshot_stripes.png)
-
-Bonus: The plugin can additionally make the focused window glow.
-![image](https://raw.github.com/timgott/wayfire-shadows/screenshots/screenshots/screenshot_glass_glow.png)
-
-<details>
-<summary>Config used in last screenshot</summary>
-
-```
-[decoration]
-active_color = \#A8A0C9A4
-border_size = 4
-inactive_color = \#20252338
-title_height = 0
-
-[winshadows]
-glow_color = \#97AFCD26
-glow_radius = 40
-shadow_color = \#00000033
-shadow_radius = 20
-```
-</details>
