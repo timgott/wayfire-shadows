@@ -37,6 +37,7 @@ class shadow_renderer_t {
         wf::option_wrapper_t<int> vertical_offset { "winshadows/vertical_offset" };
         wf::option_wrapper_t<int> horizontal_offset { "winshadows/horizontal_offset" };
 
+        wf::option_wrapper_t<bool> glow_enabled_option { "winshadows/glow_enabled" };
         wf::option_wrapper_t<wf::color_t> glow_color_option { "winshadows/glow_color" };
         wf::option_wrapper_t<double> glow_emissivity_option { "winshadows/glow_emissivity" };
         wf::option_wrapper_t<double> glow_spread_option { "winshadows/glow_spread" };

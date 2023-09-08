@@ -182,7 +182,7 @@ void shadow_renderer_t::resize(const int window_width, const int window_height) 
 }
 
 bool shadow_renderer_t::is_glow_enabled() const {
-    return (glow_radius_limit_option > 0) && (glow_intensity_option > 0);
+    return glow_enabled_option && (glow_radius_limit_option > 0) && (glow_intensity_option > 0);
 }
 
 }

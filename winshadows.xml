@@ -45,10 +45,15 @@
 		<group>
 			<_short>Glow</_short>
 			<_long>Make windows edges emit light when focused</_long>
+			<option name="glow_enabled" type="bool">
+				<_short>Focus glow</_short>
+				<_long>Show a glow effect around the focused window.</_long>
+				<default>false</default>
+			</option>
 			<option name="glow_intensity" type="double">
 				<_short>Glow intensity</_short>
 				<_long>Intensity of light emitted by the edges of the window (multiplies alpha of glow color). 0 to disable glow.</_long>
-				<default>0</default>
+				<default>0.6</default>
 				<min>0</min>
 				<precision>0.1</precision>
 			</option>
