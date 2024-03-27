@@ -41,6 +41,23 @@
 				<_long>Number of pixels to shift the shadow by in horizontal direction.</_long>
 				<default>0</default>
 			</option>
+			<option name="light_type" type="string">
+				<_short>Light type</_short>
+				<_long>Change the shape of the simulated light source. Square is also the simplest shader, might be faster.</_long>
+				<default>gaussian</default>
+				<desc>
+					<value>gaussian</value>
+					<_name>Gaussian</_name>
+				</desc>
+				<desc>
+					<value>circular</value>
+					<_name>Circular</_name>
+				</desc>
+				<desc>
+					<value>square</value>
+					<_name>Square</_name>
+				</desc>
+			</option>
 		</group>
 		<group>
 			<_short>Glow</_short>

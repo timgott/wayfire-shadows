@@ -5,14 +5,26 @@ namespace winshadows {
 
 shadow_renderer_t::shadow_renderer_t() {
     OpenGL::render_begin();
+    generate_dither_texture();
+    recompile_shaders();
+    OpenGL::render_end();
+
+    light_type_option.set_callback([this] () {
+        recompile_shaders();
+    });
+}
+
+void shadow_renderer_t::recompile_shaders() {
+    OpenGL::render_begin();
+    shadow_program.free_resources();
+    shadow_glow_program.free_resources();
+
     shadow_program.set_simple(
-        OpenGL::compile_program(shadow_vert_shader, shadow_frag_shader)
+        OpenGL::compile_program(shadow_vert_shader, frag_shader(light_type_option, /*no glow*/ false))
     );
     shadow_glow_program.set_simple(
-        OpenGL::compile_program(shadow_vert_shader, shadow_glow_frag_shader)
+        OpenGL::compile_program(shadow_vert_shader, frag_shader(light_type_option, /*glow*/ true))
     );
-
-    generate_dither_texture();
 
     OpenGL::render_end();
 }
@@ -100,7 +112,7 @@ void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window
     program.uniformMatrix4f("MVP", matrix);
 
     // fragment parameters
-    program.uniform1f("sigma", radius / 3.0f);
+    program.uniform1f("radius", radius);
     program.uniform4f("color", premultiplied);
 
     float inner_x = window_geometry.x + window_origin.x;

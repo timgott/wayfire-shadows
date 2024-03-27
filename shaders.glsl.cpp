@@ -22,10 +22,22 @@ void main() {
 
 /* Base fragment shader definitions */
 
+const std::string flag_define(const std::string& name, const bool value) {
+    return "#define " + name + " " + (value? "1" : "0") + "\n";
+}
+
+const std::string frag_header(const std::string& light_type, const bool glow) {
+    return
+      "#version 300 es\n" +
+      flag_define("CIRCULAR_SHADOW", light_type == "circular") +
+      flag_define("GAUSSIAN_SHADOW", light_type == "gaussian") +
+      flag_define("SQUARE_SHADOW", light_type == "square") +
+      flag_define("GLOW", glow);
+}
+
 // All definitions are inserted in the shader, the shader compiler will remove unused ones
-const std::string fragment_header =
+const std::string frag_body =
 R"(
-#version 300 es
 precision highp float;
 in vec2 uvpos;
 out vec4 fragColor;
@@ -33,7 +45,7 @@ uniform vec2 lower;
 uniform vec2 upper;
 uniform vec4 color;
 
-uniform float sigma;
+uniform float radius;
 
 uniform sampler2D dither_texture;
 
@@ -70,6 +82,9 @@ float circleSegment(float dist) {
   return sqrt(1.0-dist*dist);
 }
 
+// assuming fullArea is the area of two parts of a circle cut by a horizontal stripe
+// (top and bottom are the cut lines)
+// compute the remaining area when cut vertically at right
 float circleMinusWall(float top, float bottom, float right, float fullArea) {
   if (right <= -1.0) {
     return fullArea; // entire circle
@@ -90,7 +105,7 @@ float circleMinusWall(float top, float bottom, float right, float fullArea) {
   }
 }
 
-// Circle / rectangle overlap
+// Circle-rectangle overlap
 // circle is at (0,0) radius 1
 // only one top-left corner of rectangle is considered (assume rectangle >> circle)
 float circleOverlap(vec2 lower, vec2 upper) {
@@ -104,9 +119,21 @@ float circleOverlap(vec2 lower, vec2 upper) {
   return (inner - outerLeft - outerRight) / M_PI;
 }
 
+// Shadow of rectangle under circular area light
 float circularLightShadow(vec2 lower, vec2 upper, vec2 point, float radius) {
   vec4 query = vec4(lower - point, upper - point) / radius;
   return max(circleOverlap(query.st, query.pq), 0.0);
+}
+
+// Shadow of rectangle under square area light
+float squareShadow(vec2 lower, vec2 upper, vec2 point, float radius) {
+  vec2 squareLower = point - radius;
+  vec2 squareUpper = point + radius;
+  vec2 overlapLower = max(lower, squareLower);
+  vec2 overlapUpper = min(upper, squareUpper);
+  vec2 overlap = max(overlapUpper - overlapLower, 0.0);
+  float maxArea = radius * radius * 4.0;
+  return overlap.x * overlap.y / maxArea; // area
 }
 
 
@@ -207,49 +234,41 @@ vec4 dither(vec2 pos) {
     return texture(dither_texture, pos / size) / 256.0 - 0.5 / 256.0;
 }
 
-// TODO: make configurable?
-//#define CIRCULAR_SHADOW
-)";
+vec4 shadow_color()
+{
+#if CIRCULAR_SHADOW
+    return color * circularLightShadow(lower, upper, uvpos, radius);
+#elif GAUSSIAN_SHADOW
+    return color * boxGaussian(lower, upper, uvpos, radius / 2.7);
+#elif SQUARE_SHADOW
+    return color * squareShadow(lower, upper, uvpos, radius);
+#else
+  #error "No shadow type defined"
+#endif
+}
 
 /* Rectangle shadow+glow fragment shader */
 
-
-const std::string winshadows::shadow_renderer_t::shadow_glow_frag_shader =
-fragment_header +
-R"(
 void main()
 {
+#if GLOW
     float glow_value = edgeInvSqrGlow(glow_lower, glow_upper, uvpos, glow_spread), glow_neon_threshold;
-    //float glow_value = boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_spread)
+    //float glow_value = boxInvQrtFalloff(glow_lower, glow_upper, uvpos, glow_spread);
     //float glow_value = boxGaussian(glow_lower, glow_upper, uvpos, glow_spread)
     //float glow_value = distInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_spread);
     //float glow_value = orthoInvSqrFalloff(glow_lower, glow_upper, uvpos, glow_spread);
     vec4 out_color =
-#ifdef CIRCULAR_SHADOW
-        color * circularLightShadow(lower, upper, uvpos, sigma * 1.8) +
-#else
-        color * boxGaussian(lower, upper, uvpos, sigma) +
-#endif
+        shadow_color() +
         glow_intensity * glow_color * lightThreshold(glow_value, glow_threshold);
-    out_color += dither(uvpos + lower*upper);
-    fragColor = out_color ;
-}
-)";
-
-/* Rectangle shadow fragment shader */
-
-const std::string winshadows::shadow_renderer_t::shadow_frag_shader =
-fragment_header + // include header and function definitions
-R"(
-void main()
-{
-    vec4 out_color ;
-#ifdef CIRCULAR_SHADOW
-    out_color = color * circularLightShadow(lower, upper, uvpos, sigma * 1.8);
 #else
-    out_color = color * boxGaussian(lower, upper, uvpos, sigma);
+    vec4 out_color = shadow_color();
 #endif
     out_color += dither(uvpos + lower*upper);
-    fragColor = out_color ;
+    fragColor = out_color;
 }
+
 )";
+
+const std::string winshadows::shadow_renderer_t::frag_shader(const std::string &light_type, const bool glow) {
+    return frag_header(light_type, glow) + frag_body;
+}

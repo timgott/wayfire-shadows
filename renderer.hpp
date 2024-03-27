@@ -13,6 +13,7 @@ class shadow_renderer_t {
         shadow_renderer_t();
         ~shadow_renderer_t();
 
+        void recompile_shaders();
         void render(const wf::render_target_t& fb, wf::point_t origin, const wf::geometry_t& scissor, const bool glow);
         void resize(const int width, const int height);
         wf::region_t calculate_region() const;
@@ -36,6 +37,7 @@ class shadow_renderer_t {
         wf::option_wrapper_t<bool> clip_shadow_inside { "winshadows/clip_shadow_inside" };
         wf::option_wrapper_t<int> vertical_offset { "winshadows/vertical_offset" };
         wf::option_wrapper_t<int> horizontal_offset { "winshadows/horizontal_offset" };
+        wf::option_wrapper_t<std::string> light_type_option { "winshadows/light_type" };
 
         wf::option_wrapper_t<bool> glow_enabled_option { "winshadows/glow_enabled" };
         wf::option_wrapper_t<wf::color_t> glow_color_option { "winshadows/glow_color" };
@@ -46,8 +48,7 @@ class shadow_renderer_t {
         wf::option_wrapper_t<int> glow_radius_limit_option { "winshadows/glow_radius_limit" };
 
         static const std::string shadow_vert_shader;
-        static const std::string shadow_frag_shader;
-        static const std::string shadow_glow_frag_shader;
+        const std::string frag_shader(const std::string &light_type, const bool glow);
 };
 
 }
