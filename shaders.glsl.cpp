@@ -238,12 +238,10 @@ vec4 shadow_color()
 {
 #if CIRCULAR_SHADOW
     return color * circularLightShadow(lower, upper, uvpos, radius);
-#elif GAUSSIAN_SHADOW
-    return color * boxGaussian(lower, upper, uvpos, radius / 2.7);
 #elif SQUARE_SHADOW
     return color * squareShadow(lower, upper, uvpos, radius);
-#else
-  #error "No shadow type defined"
+#else // GAUSSIAN_SHADOW
+    return color * boxGaussian(lower, upper, uvpos, radius / 2.7);
 #endif
 }
 
