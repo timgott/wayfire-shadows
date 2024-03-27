@@ -28,6 +28,7 @@ class shadow_renderer_t {
 
         wf::geometry_t glow_geometry;
         wf::geometry_t shadow_geometry;
+        wf::geometry_t shadow_projection_geometry; // projected window geometry
         wf::geometry_t outer_geometry;
         wf::geometry_t window_geometry;
         wlr_box calculate_padding(const wf::geometry_t window_geometry) const;
@@ -38,6 +39,7 @@ class shadow_renderer_t {
         wf::option_wrapper_t<int> vertical_offset { "winshadows/vertical_offset" };
         wf::option_wrapper_t<int> horizontal_offset { "winshadows/horizontal_offset" };
         wf::option_wrapper_t<std::string> light_type_option { "winshadows/light_type" };
+        wf::option_wrapper_t<double> overscale_option { "winshadows/overscale" };
 
         wf::option_wrapper_t<bool> glow_enabled_option { "winshadows/glow_enabled" };
         wf::option_wrapper_t<wf::color_t> glow_color_option { "winshadows/glow_color" };

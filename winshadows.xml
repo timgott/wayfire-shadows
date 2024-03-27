@@ -29,7 +29,7 @@
 			<option name="shadow_radius" type="int">
 				<_short>Shadow radius</_short>
 				<_long>Sets the shadow radius in pixels.</_long>
-				<default>60</default>
+				<default>40</default>
 			</option>
 			<option name="vertical_offset" type="int">
 				<_short>Vertical offset</_short>
@@ -43,7 +43,7 @@
 			</option>
 			<option name="light_type" type="string">
 				<_short>Light type</_short>
-				<_long>Change the shape of the simulated light source. Square is also the simplest shader, might be faster.</_long>
+				<_long>Change the shape of the simulated light source. Square is the simplest shader, might be slightly faster.</_long>
 				<default>gaussian</default>
 				<desc>
 					<value>gaussian</value>
@@ -57,6 +57,12 @@
 					<value>square</value>
 					<_name>Square</_name>
 				</desc>
+			</option>
+			<option name="overscale" type="double">
+				<_short>Overscale</_short>
+				<_long>Percentage to scale up the shadow rectangle, corresponding to a closer lamp. Also useful to increase contrast around the window a bit.</_long>
+				<default>1.0</default>
+				<precision>0.5</precision>
 			</option>
 		</group>
 		<group>

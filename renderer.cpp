@@ -1,4 +1,6 @@
 #include <random>
+#include <wayfire/geometry.hpp>
+#include <wayfire/toplevel.hpp>
 #include "renderer.hpp"
 
 namespace winshadows {
@@ -115,18 +117,14 @@ void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window
     program.uniform1f("radius", radius);
     program.uniform4f("color", premultiplied);
 
-    float inner_x = window_geometry.x + window_origin.x;
-    float inner_y = window_geometry.y + window_origin.y;
-    float inner_w = window_geometry.width;
-    float inner_h = window_geometry.height;
-    float shadow_x = inner_x + horizontal_offset;
-    float shadow_y = inner_y + vertical_offset;
-    program.uniform2f("lower", shadow_x, shadow_y);
-    program.uniform2f("upper", shadow_x + inner_w, shadow_y + inner_h);
+    const auto inner = window_geometry + window_origin;
+    const auto shadow_inner = shadow_projection_geometry + window_origin;
+    program.uniform2f("lower", shadow_inner.x, shadow_inner.y);
+    program.uniform2f("upper", shadow_inner.x + shadow_inner.width, shadow_inner.y + shadow_inner.height);
 
     if (use_glow) {
-        program.uniform2f("glow_lower", inner_x, inner_y);
-        program.uniform2f("glow_upper", inner_x + inner_w, inner_y + inner_h);
+        program.uniform2f("glow_lower", inner.x, inner.y);
+        program.uniform2f("glow_upper", inner.x + inner.width, inner.y + inner.height);
 
         program.uniform1f("glow_spread", glow_spread_option);
         program.uniform4f("glow_color", glow_premultiplied);
@@ -162,6 +160,25 @@ wf::geometry_t shadow_renderer_t::get_geometry() const {
     return outer_geometry;
 }
 
+wf::geometry_t expand_geometry(const wf::geometry_t& geometry, const int marginX, const int marginY) {
+    return {
+        geometry.x - marginX,
+        geometry.y - marginY,
+        geometry.width + marginX * 2,
+        geometry.height + marginY * 2
+    };
+}
+
+wf::geometry_t expand_geometry(const wf::geometry_t& geometry, const int margin) {
+    return expand_geometry(geometry, margin, margin);
+}
+
+wf::geometry_t inflate_geometry(const wf::geometry_t& geometry, const float inflation) {
+    int expandX = geometry.width * inflation * 0.5;
+    int expandY = geometry.height * inflation * 0.5;
+    return expand_geometry(geometry, expandX, expandY);
+}
+
 void shadow_renderer_t::resize(const int window_width, const int window_height) {
     window_geometry = {
         0,
@@ -170,16 +187,15 @@ void shadow_renderer_t::resize(const int window_width, const int window_height) 
         window_height
     };
 
-    shadow_geometry = {
-        -shadow_radius_option + horizontal_offset, -shadow_radius_option + vertical_offset,
-        window_width + shadow_radius_option * 2, window_height + shadow_radius_option * 2
-    };
+    float overscale = overscale_option / 100.0;
+    const wf::point_t offset { horizontal_offset, vertical_offset };
+    shadow_projection_geometry =
+        inflate_geometry(window_geometry, overscale) + offset;
+
+    shadow_geometry = expand_geometry(shadow_projection_geometry, shadow_radius_option);
 
     int glow_radius = is_glow_enabled() ? glow_radius_limit_option : 0;
-    glow_geometry = {
-        -glow_radius, -glow_radius,
-        window_width + glow_radius * 2, window_height + glow_radius * 2
-    };
+    glow_geometry = expand_geometry(shadow_projection_geometry, glow_radius);
 
     int left = std::min(shadow_geometry.x, glow_geometry.x);
     int top = std::min(shadow_geometry.y, glow_geometry.y);
