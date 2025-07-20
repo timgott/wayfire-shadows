@@ -2,6 +2,8 @@
 #include <wayfire/option-wrapper.hpp>
 #include <wayfire/opengl.hpp>
 #include <wayfire/region.hpp>
+#include <wayfire/scene.hpp>
+#include <wayfire/scene-render.hpp>
 
 namespace winshadows {
 /**
@@ -14,7 +16,7 @@ class shadow_renderer_t {
         ~shadow_renderer_t();
 
         void recompile_shaders();
-        void render(const wf::render_target_t& fb, wf::point_t origin, const wf::geometry_t& scissor, const bool glow);
+        void render(const wf::scene::render_instruction_t& data, wf::point_t origin, const wf::geometry_t& scissor, const bool glow);
         void resize(const int width, const int height);
         wf::region_t calculate_region() const;
         wf::geometry_t get_geometry() const;

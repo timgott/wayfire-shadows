@@ -35,6 +35,11 @@ class wayfire_shadows : public wf::plugin_interface_t {
 
 public:
     void init() override {
+            if (!wf::get_core().is_gles2())
+        {
+            LOGE("winshadows plugin requires GLES2 renderer!");
+            return;
+        }
         wf::get_core().connect(&on_view_mapped);
         wf::get_core().connect(&on_view_updated);
         wf::get_core().connect(&on_view_tiled);

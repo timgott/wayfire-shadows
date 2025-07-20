@@ -28,16 +28,17 @@ void shadow_node_t::gen_render_instances(std::vector<wf::scene::render_instance_
     class shadow_render_instance_t : public wf::scene::simple_render_instance_t<shadow_node_t> {
       public:
         using simple_render_instance_t::simple_render_instance_t;
-        void render(const wf::render_target_t& target, const wf::region_t& region) override
+        void render(const wf::scene::render_instruction_t& data ) override
         {
             // coordinates relative to view origin (not bounding box origin)
             wf::point_t frame_origin = self->frame_offset;
             wf::region_t paint_region = self->shadow_region + frame_origin;
-            paint_region &= region;
+            paint_region &= data.damage;
 
             for (const auto& box : paint_region)
+
             {
-                self->shadow.render(target, frame_origin, wlr_box_from_pixman_box(box), self->view->activated);
+                self->shadow.render(data, frame_origin, wlr_box_from_pixman_box(box) , self->view->activated);
             }
             self->_was_activated = self->view->activated;
         }

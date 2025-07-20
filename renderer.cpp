@@ -6,10 +6,11 @@
 namespace winshadows {
 
 shadow_renderer_t::shadow_renderer_t() {
-    OpenGL::render_begin();
+        wf::gles::run_in_context([&]
+        {
     generate_dither_texture();
     recompile_shaders();
-    OpenGL::render_end();
+    });
 
     light_type_option.set_callback([this] () {
         recompile_shaders();
@@ -17,7 +18,8 @@ shadow_renderer_t::shadow_renderer_t() {
 }
 
 void shadow_renderer_t::recompile_shaders() {
-    OpenGL::render_begin();
+        wf::gles::run_in_context([&]
+        {
     shadow_program.free_resources();
     shadow_glow_program.free_resources();
 
@@ -28,7 +30,7 @@ void shadow_renderer_t::recompile_shaders() {
         OpenGL::compile_program(shadow_vert_shader, frag_shader(light_type_option, /*glow*/ true))
     );
 
-    OpenGL::render_end();
+    });
 }
 
 void shadow_renderer_t::generate_dither_texture() {
@@ -52,16 +54,17 @@ void shadow_renderer_t::generate_dither_texture() {
 }
 
 shadow_renderer_t::~shadow_renderer_t() {
-    OpenGL::render_begin();
+        wf::gles::run_in_context([&]
+        {
     shadow_program.free_resources();
     shadow_glow_program.free_resources();
 
     GL_CALL(glDeleteTextures(1, &dither_texture));
 
-    OpenGL::render_end();
+    });
 }
 
-void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window_origin, const wf::geometry_t& scissor, const bool glow) {
+void shadow_renderer_t::render(const wf::scene::render_instruction_t& data, wf::point_t window_origin, const wf::geometry_t& scissor, const bool glow) {
     float radius = shadow_radius_option;
 
     wf::color_t color = shadow_color_option;
@@ -88,9 +91,10 @@ void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window
     OpenGL::program_t &program = 
         use_glow ? shadow_glow_program : shadow_program;
 
-    OpenGL::render_begin(fb);
-    fb.logic_scissor(scissor);
+            data.pass->custom_gles_subpass(data.target,[&]
+            {
 
+                wf::gles::render_target_logic_scissor(data.target, scissor);
     program.use(wf::TEXTURE_TYPE_RGBA);
 
     // Compute vertex rectangle geometry
@@ -107,7 +111,7 @@ void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window
         left, top
     };
 
-    glm::mat4 matrix = fb.get_orthographic_projection();
+    glm::mat4 matrix = wf::gles::render_target_orthographic_projection(data.target);
 
     // vertex parameters
     program.attrib_pointer("position", 2, 0, vertexData);
@@ -142,7 +146,7 @@ void shadow_renderer_t::render(const wf::render_target_t& fb, wf::point_t window
     GL_CALL(glDrawArrays(GL_TRIANGLE_FAN, 0, 4));
 
     program.deactivate();
-    OpenGL::render_end();
+    });
 }
 
 wf::region_t shadow_renderer_t::calculate_region() const {
