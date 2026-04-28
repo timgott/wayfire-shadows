@@ -1,5 +1,8 @@
 #include "node.hpp"
 
+#include <cmath>
+#include <wayfire/output.hpp>
+
 namespace winshadows {
 
 shadow_node_t::shadow_node_t( wayfire_toplevel_view view ): wf::scene::node_t(false) {
@@ -65,6 +68,47 @@ void shadow_node_t::update_geometry() {
     geometry = shadow_geometry + frame_offset;
 
     this->shadow_region = shadow.calculate_region();
+
+    // Clip the shadow to the workspace(s) the window's frame is on, so an
+    // edge-tiled or maximized window's shadow does not leak past the screen
+    // edge into adjacent workspaces. If the frame straddles two workspaces,
+    // the clip is the union of those workspaces, leaving the shadow free to
+    // extend across the workspace boundary the window itself crosses.
+    auto output = view->get_output();
+    if (output) {
+        auto og = output->get_relative_geometry();
+        if (og.width > 0 && og.height > 0) {
+            int x0 = (int)std::floor(1.0 * frame_geometry.x / og.width);
+            int x1 = (int)std::floor(
+                1.0 * (frame_geometry.x + frame_geometry.width - 1) / og.width);
+            int y0 = (int)std::floor(1.0 * frame_geometry.y / og.height);
+            int y1 = (int)std::floor(
+                1.0 * (frame_geometry.y + frame_geometry.height - 1) / og.height);
+
+            wf::geometry_t ws_bounds {
+                x0 * og.width,
+                y0 * og.height,
+                (x1 - x0 + 1) * og.width,
+                (y1 - y0 + 1) * og.height
+            };
+
+            wf::geometry_t ws_in_window {
+                ws_bounds.x - frame_geometry.x,
+                ws_bounds.y - frame_geometry.y,
+                ws_bounds.width,
+                ws_bounds.height
+            };
+            this->shadow_region &= ws_in_window;
+
+            wf::geometry_t ws_in_view {
+                ws_bounds.x - view_origin.x,
+                ws_bounds.y - view_origin.y,
+                ws_bounds.width,
+                ws_bounds.height
+            };
+            geometry = wf::geometry_intersection(geometry, ws_in_view);
+        }
+    }
 }
 
 }
