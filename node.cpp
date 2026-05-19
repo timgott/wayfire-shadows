@@ -13,8 +13,28 @@ shadow_node_t::shadow_node_t( wayfire_toplevel_view view ): wf::scene::node_t(fa
     on_activated_changed.set_callback([this] (auto) {
         this->view->damage();
     });
+    on_drag_focus_output.set_callback([this] (auto) {
+        // drag_focus_output fires when a drag starts and whenever it crosses
+        // between outputs; treat any of these as "drag in progress" if our
+        // view is the one being dragged.
+        bool dragging = (drag_helper->view == this->view);
+        if (dragging != is_being_dragged) {
+            is_being_dragged = dragging;
+            update_geometry();
+            this->view->damage();
+        }
+    });
+    on_drag_done.set_callback([this] (wf::move_drag::drag_done_signal *ev) {
+        if (ev->main_view == this->view && is_being_dragged) {
+            is_being_dragged = false;
+            update_geometry();
+            this->view->damage();
+        }
+    });
     view->connect(&on_geometry_changed);
     view->connect(&on_activated_changed);
+    drag_helper->connect(&on_drag_focus_output);
+    drag_helper->connect(&on_drag_done);
     update_geometry();
 }
 
@@ -69,13 +89,22 @@ void shadow_node_t::update_geometry() {
 
     this->shadow_region = shadow.calculate_region();
 
-    // Clip the shadow to the workspace(s) the window's frame is on, so an
-    // edge-tiled or maximized window's shadow does not leak past the screen
-    // edge into adjacent workspaces. If the frame straddles two workspaces,
-    // the clip is the union of those workspaces, leaving the shadow free to
-    // extend across the workspace boundary the window itself crosses.
+    // Clip the painted shadow to the workspace(s) the window's frame is on,
+    // so an edge-tiled or maximized window's shadow does not leak past the
+    // screen edge into adjacent workspaces. If the frame straddles two
+    // workspaces, the clip is the union of those workspaces, leaving the
+    // shadow free to extend across the workspace boundary the window itself
+    // crosses.
+    //
+    // We deliberately leave the bounding box (geometry) unclipped: the
+    // move-drag plugin captures the view's bbox at drag-start and positions
+    // the dragged view as a fraction of that bbox, so changing the bbox when
+    // a drag begins (which is when we'd want to unclip to follow the cursor)
+    // would make the view visibly jump by the amount the clip was trimming.
+    // Keeping the bbox stable avoids that, and the shadow_region clip alone
+    // is enough to prevent the visual leakage the clip exists to address.
     auto output = view->get_output();
-    if (output) {
+    if (output && !is_being_dragged) {
         auto og = output->get_relative_geometry();
         if (og.width > 0 && og.height > 0) {
             int x0 = (int)std::floor(1.0 * frame_geometry.x / og.width);
@@ -99,14 +128,6 @@ void shadow_node_t::update_geometry() {
                 ws_bounds.height
             };
             this->shadow_region &= ws_in_window;
-
-            wf::geometry_t ws_in_view {
-                ws_bounds.x - view_origin.x,
-                ws_bounds.y - view_origin.y,
-                ws_bounds.width,
-                ws_bounds.height
-            };
-            geometry = wf::geometry_intersection(geometry, ws_in_view);
         }
     }
 }

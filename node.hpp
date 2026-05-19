@@ -6,6 +6,8 @@
 #include <wayfire/core.hpp>
 #include <wayfire/signal-definitions.hpp>
 #include <wayfire/toplevel-view.hpp>
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/plugins/common/move-drag-interface.hpp>
 #include "renderer.hpp"
 
 namespace winshadows {
@@ -26,8 +28,20 @@ class shadow_node_t : public wf::scene::node_t {
     wf::region_t shadow_region;
     shadow_renderer_t shadow;
 
+    // True while this view is the subject of an interactive drag. The drag
+    // plugin moves the view via a transformer rather than by updating its
+    // geometry, so the workspace clip computed in update_geometry() would
+    // remain anchored to the pre-drag position and visibly clip the shadow as
+    // the user drags the window away from the screen edge. We suppress the
+    // clip until the drag ends.
+    bool is_being_dragged = false;
+
+    wf::shared_data::ref_ptr_t<wf::move_drag::core_drag_t> drag_helper;
+
     wf::signal::connection_t<wf::view_geometry_changed_signal> on_geometry_changed;
     wf::signal::connection_t<wf::view_activated_state_signal> on_activated_changed;
+    wf::signal::connection_t<wf::move_drag::drag_focus_output_signal> on_drag_focus_output;
+    wf::signal::connection_t<wf::move_drag::drag_done_signal> on_drag_done;
 
     void update_geometry();
 
