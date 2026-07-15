@@ -64,7 +64,7 @@ shadow_renderer_t::~shadow_renderer_t() {
     });
 }
 
-void shadow_renderer_t::render(const wf::scene::render_instruction_t& data, wf::point_t window_origin, const wf::geometry_t& scissor, const bool glow) {
+void shadow_renderer_t::render(const wf::scene::render_instruction_t& data, wf::pointf_t window_origin, const pixman_box64f_t& scissor, const bool glow) {
     float radius = shadow_radius_option;
 
     wf::color_t color = shadow_color_option;
@@ -149,9 +149,9 @@ void shadow_renderer_t::render(const wf::scene::render_instruction_t& data, wf::
     });
 }
 
-wf::region_t shadow_renderer_t::calculate_region() const {
+wf::regionf_t shadow_renderer_t::calculate_region() const {
     // TODO: geometry and region depending on whether glow is active or not
-    wf::region_t region = wf::region_t(shadow_geometry) | wf::region_t(glow_geometry);
+    wf::regionf_t region = wf::regionf_t(shadow_geometry) | wf::regionf_t(glow_geometry);
 
     if (clip_shadow_inside) {
         region ^= window_geometry;
@@ -185,26 +185,26 @@ wf::geometry_t inflate_geometry(const wf::geometry_t& geometry, const float infl
 
 void shadow_renderer_t::resize(const int window_width, const int window_height) {
     window_geometry = {
-        0,
-        0,
-        window_width,
-        window_height
+        0.0,
+        0.0,
+        (double)window_width,
+        (double)window_height
     };
 
     float overscale = overscale_option / 100.0;
     const wf::point_t offset { horizontal_offset, vertical_offset };
     shadow_projection_geometry =
-        inflate_geometry(window_geometry, overscale) + offset;
+        inflate_geometry(window_geometry, overscale) + wf::pointf_t{offset};
 
     shadow_geometry = expand_geometry(shadow_projection_geometry, shadow_radius_option);
 
     int glow_radius = is_glow_enabled() ? glow_radius_limit_option : 0;
     glow_geometry = expand_geometry(shadow_projection_geometry, glow_radius);
 
-    int left = std::min(shadow_geometry.x, glow_geometry.x);
-    int top = std::min(shadow_geometry.y, glow_geometry.y);
-    int right = std::max(shadow_geometry.x + shadow_geometry.width, glow_geometry.x + glow_geometry.width);
-    int bottom = std::max(shadow_geometry.y + shadow_geometry.height, glow_geometry.y + glow_geometry.height);
+    double left = std::min(shadow_geometry.x, glow_geometry.x);
+    double top = std::min(shadow_geometry.y, glow_geometry.y);
+    double right = std::max(shadow_geometry.x + shadow_geometry.width, glow_geometry.x + glow_geometry.width);
+    double bottom = std::max(shadow_geometry.y + shadow_geometry.height, glow_geometry.y + glow_geometry.height);
     outer_geometry = {
         left,
         top,

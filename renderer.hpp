@@ -16,9 +16,9 @@ class shadow_renderer_t {
         ~shadow_renderer_t();
 
         void recompile_shaders();
-        void render(const wf::scene::render_instruction_t& data, wf::point_t origin, const wf::geometry_t& scissor, const bool glow);
+        void render(const wf::scene::render_instruction_t& data, wf::pointf_t origin, const pixman_box64f_t& scissor, const bool glow);
         void resize(const int width, const int height);
-        wf::region_t calculate_region() const;
+        wf::regionf_t calculate_region() const;
         wf::geometry_t get_geometry() const;
         bool is_glow_enabled() const;
 
